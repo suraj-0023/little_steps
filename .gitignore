@@ -1,0 +1,6 @@
+.DS_Store
+*.lock
+little_steps/.dart_tool/
+little_steps/build/
+little_steps/.flutter-plugins
+little_steps/.flutter-plugins-dependencies

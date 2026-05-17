@@ -1,7 +1,7 @@
 # LittleSteps — Master Build Plan
 
 **Last Updated:** 2026-05-17
-**Current Status:** Pre-build — dev environment not yet installed (Flutter, Android Studio, Java missing)
+**Current Status:** Phase 0 complete — scaffold, theme, router done. Next: Step 1.1 Auth (needs Firebase setup first)
 **Single source of truth** for all Claude Code sessions. Tick checkboxes as each task completes.
 **How to use:** On session start, read this file, find the first unticked checkbox, and continue from there.
 
@@ -26,24 +26,24 @@
 
 ### 0.1 Flutter Project Scaffold
 
-- [ ] Run `flutter create --org com.littlesteps --platforms android little_steps` in parent directory
-- [ ] Delete default `lib/main.dart` counter app content
-- [ ] Create entry point files:
+- [x] Run `flutter create --org com.littlesteps --platforms android little_steps` in parent directory
+- [x] Delete default `lib/main.dart` counter app content
+- [x] Create entry point files:
   - `lib/main.dart` — calls `runApp` with flavor detection via `const String.fromEnvironment('FLAVOR', defaultValue: 'prod')`
   - `lib/main_dev.dart` — sets `FLAVOR=dev`, calls shared `bootstrap(AppFlavor.dev)`
   - `lib/main_prod.dart` — sets `FLAVOR=prod`, calls shared `bootstrap(AppFlavor.prod)`
   - `lib/bootstrap.dart` — initializes Hive, Firebase, then runs `MyApp`
   - `lib/app.dart` — returns `ProviderScope` wrapping `MaterialApp.router` with `AppTheme.light()` and `AppRouter.router`
-- [ ] Create Android flavor product flavors in `android/app/build.gradle`:
+- [x] Create Android flavor product flavors in `android/app/build.gradle.kts`:
   - `dev` flavor: `applicationIdSuffix ".dev"`, `versionNameSuffix "-dev"`
   - `prod` flavor: no suffix
-- [ ] Set `minSdkVersion 24` in `android/app/build.gradle`
-- [ ] Set `compileSdkVersion 34`, `targetSdkVersion 34`
-- [ ] Add `google-services.json` for both flavors under `android/app/src/dev/` and `android/app/src/prod/`
+- [x] Set `minSdk 24` in `android/app/build.gradle.kts`
+- [x] Set `compileSdk 36`, `targetSdk 36`
+- [ ] Add `google-services.json` for both flavors under `android/app/src/dev/` and `android/app/src/prod/` (after Firebase setup)
 
 ### 0.2 pubspec.yaml — Full Dependency List
 
-- [ ] Paste the following into `pubspec.yaml` and run `flutter pub get`:
+- [x] Paste the following into `pubspec.yaml` and run `flutter pub get`:
 
 ```yaml
 name: little_steps
@@ -162,8 +162,8 @@ flutter:
     - assets/fonts/
 ```
 
-- [ ] Download Nunito and Lora font files from Google Fonts into `assets/fonts/`
-- [ ] Create placeholder asset directories: `assets/images/`, `assets/animations/`
+- [x] Download Nunito and Lora font files from Google Fonts into `assets/fonts/`
+- [x] Create placeholder asset directories: `assets/images/`, `assets/animations/`
 
 ### 0.3 Firebase Console Setup
 
@@ -232,7 +232,7 @@ firebase emulators:start --only auth,firestore,storage,functions
 
 ### 0.6 Core — Theme System
 
-- [ ] Create `lib/core/theme/app_colors.dart` — defines `AppColors` class with static const fields:
+- [x] Create `lib/core/theme/app_colors.dart` — defines `AppColors` class with static const fields:
   - `primary = Color(0xFF6C3FC5)`
   - `secondary = Color(0xFFF5A623)`
   - `surface = Color(0xFFFDFBFF)`
@@ -241,15 +241,15 @@ firebase emulators:start --only auth,firestore,storage,functions
   - `textSecondary = Color(0xFF6B6B8A)`
   - `error = Color(0xFFB00020)`
   - `success = Color(0xFF4CAF50)`
-- [ ] Create `lib/core/theme/app_text_styles.dart` — defines `AppTextStyles` with `TextStyle` getters using Nunito for body/UI and Lora for story/letter text
-- [ ] Create `lib/core/theme/app_theme.dart` — `AppTheme.light()` returns `ThemeData` with:
+- [x] Create `lib/core/theme/app_text_styles.dart` — defines `AppTextStyles` with `TextStyle` getters using Nunito for body/UI and Lora for story/letter text
+- [x] Create `lib/core/theme/app_theme.dart` — `AppTheme.light()` returns `ThemeData` with:
   - `colorScheme` built from `AppColors` via `ColorScheme.fromSeed`
   - `fontFamily: 'Nunito'`
   - `cardTheme: CardTheme(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)))`
   - `inputDecorationTheme` with rounded borders, filled background
   - `elevatedButtonTheme` with primary color and 12dp radius
-- [ ] Create `lib/core/constants/app_strings.dart` — all UI strings as static const
-- [ ] Create `lib/core/constants/app_constants.dart` — `kBaseUnit = 8.0`, `kCardRadius = 16.0`, `kMaxImageSizeMb = 10`, `kThumbnailSize = 400`
+- [x] Create `lib/core/constants/app_strings.dart` — all UI strings as static const
+- [x] Create `lib/core/constants/app_constants.dart` — `kBaseUnit = 8.0`, `kCardRadius = 16.0`, `kMaxImageSizeMb = 10`, `kThumbnailSize = 400`
 - [ ] Create `lib/core/extensions/context_extensions.dart` — `context.theme`, `context.colorScheme`, `context.textTheme`, `context.screenWidth`, `context.screenHeight`
 - [ ] Create `lib/core/extensions/datetime_extensions.dart` — `toFormattedString()`, `isToday`, `monthYear` getters
 - [ ] Create `lib/core/utils/logger.dart` — wraps the `logger` package, exports `AppLogger` singleton with `d/i/w/e` methods

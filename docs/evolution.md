@@ -24,6 +24,34 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-17 — Phase 0: Flutter Scaffold + Core + Router
+
+**What:**
+- Created Flutter project `little_steps` with dev/prod flavor configuration (`minSdk 24`, `compileSdk 36`)
+- Set up complete feature-first folder structure under `lib/features/` (11 features)
+- Installed all 196 dependencies via `flutter pub get`
+- Downloaded Nunito and Lora fonts from Google Fonts
+- Built full theme system: `AppColors`, `AppTextStyles`, `AppTheme.light()`
+- Created constants: `AppConstants`, `AppStrings`
+- Created extensions: `BuildContextExtensions`, `DateTimeExtensions`
+- Created `AppLogger` utility
+- Set up GoRouter with all routes and `ShellRoute` for bottom nav
+- Built `AppShell` with 5-tab `NavigationBar` (Home, Timeline, Stories, Growth, Family)
+- Wrote `main.dart` entry point with Hive init and `ProviderScope`
+- Created `AuthScreen` UI (purple gradient, Google sign-in button placeholder)
+- Created stub screens for all 6 feature tabs
+- `flutter analyze` passes with zero issues
+
+**Why:**
+- Phase 0 goal: runnable skeleton before any Firebase or auth code
+
+**What's next:**
+- Firebase Console setup (user action required — create project, enable services)
+- Step 0.3/0.4: Firebase CLI config, `flutterfire configure`, place `google-services.json`
+- Step 1.1: Wire real Firebase Auth + Google Sign-In
+
+---
+
 ## 2026-05-17 — Build Attempt #1 / Environment Check
 
 **What:**
