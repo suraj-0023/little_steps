@@ -24,6 +24,34 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-17 — Step 1.1: Firebase Init + Auth Feature
+
+**What:**
+- Placed `google-services.json` in `android/app/`
+- Created `firebase_options.dart` from project credentials
+- Updated `main.dart` to initialize Firebase before `runApp`
+- Built `AppUser` model with `UserRole` enum and Firestore serialization
+- Built `AuthRepository` with Google Sign-In, user upsert, sign-out, FCM token update
+- Wired `authRepositoryProvider`, `authStateProvider`, `currentUserProvider` (Riverpod)
+- Updated `AuthScreen` to call real Google Sign-In with loading state and error handling
+- Updated router: redirects new users to `/baby/setup`, existing users to `/home`
+- `flutter analyze`: zero issues
+
+**Why:**
+- Step 1.1 of build plan — authentication is the gate for all other features
+
+**Blocked on (user action required):**
+1. Firebase Console → Authentication → Sign-in method → Enable **Google**
+2. Firebase Console → Project settings → Your apps → **Add fingerprint**: `AE:71:2D:BA:82:AF:0A:A2:61:6B:98:F4:D9:BF:9D:5E:E0:5D:FF:FD`
+3. Download updated `google-services.json` and replace `android/app/google-services.json`
+4. Firebase Console → Firestore Database → Create database (production mode)
+5. Firebase Console → Storage → Get started
+
+**What's next (after user actions above):**
+- Step 1.2: Baby profile setup screen (name, DOB, cover photo, Firestore family creation)
+
+---
+
 ## 2026-05-17 — Phase 0: Flutter Scaffold + Core + Router
 
 **What:**

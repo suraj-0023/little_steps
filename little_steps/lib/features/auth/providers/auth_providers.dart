@@ -1,7 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/app_user.dart';
+import '../repositories/auth_repository.dart';
 
-// Placeholder until Firebase is configured.
-// Returns null (not logged in) so the router sends users to /auth.
-final authStateProvider = StreamProvider<String?>((ref) {
-  return const Stream.empty();
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepository();
+});
+
+final authStateProvider = StreamProvider<AppUser?>((ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges();
+});
+
+final currentUserProvider = Provider<AppUser?>((ref) {
+  return ref.watch(authStateProvider).valueOrNull;
 });

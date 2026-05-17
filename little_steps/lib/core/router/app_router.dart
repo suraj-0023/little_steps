@@ -18,10 +18,16 @@ final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/home',
     redirect: (context, state) {
-      final isLoggedIn = authState.valueOrNull != null;
+      final user = authState.valueOrNull;
+      final isLoggedIn = user != null;
       final isAuthRoute = state.matchedLocation == '/auth';
+      final isSetupRoute = state.matchedLocation == '/baby/setup';
+
       if (!isLoggedIn && !isAuthRoute) return '/auth';
-      if (isLoggedIn && isAuthRoute) return '/home';
+      if (isLoggedIn && isAuthRoute) {
+        return user.hasFamily ? '/home' : '/baby/setup';
+      }
+      if (isLoggedIn && !user.hasFamily && !isSetupRoute) return '/baby/setup';
       return null;
     },
     routes: [

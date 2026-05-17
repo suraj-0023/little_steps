@@ -1,10 +1,45 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../core/constants/app_strings.dart';
+import '../providers/auth_providers.dart';
 
-class AuthScreen extends StatelessWidget {
+class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
+
+  @override
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends ConsumerState<AuthScreen> {
+  bool _loading = false;
+
+  Future<void> _signIn() async {
+    setState(() => _loading = true);
+    try {
+      final user = await ref.read(authRepositoryProvider).signInWithGoogle();
+      if (!mounted) return;
+      if (user.hasFamily) {
+        context.go('/home');
+      } else {
+        context.go('/baby/setup');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().contains('cancelled')
+              ? 'Sign-in cancelled'
+              : AppStrings.genericError),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +56,8 @@ class AuthScreen extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(flex: 2),
-                // Logo placeholder (Lottie animation will go here after Firebase setup)
                 Container(
                   width: 120,
                   height: 120,
@@ -48,7 +81,9 @@ class AuthScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(flex: 2),
-                _GoogleSignInButton(),
+                _loading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : _GoogleSignInButton(onTap: _signIn),
                 const SizedBox(height: 48),
               ],
             ),
@@ -60,20 +95,22 @@ class AuthScreen extends StatelessWidget {
 }
 
 class _GoogleSignInButton extends StatelessWidget {
+  const _GoogleSignInButton({required this.onTap});
+
+  final VoidCallback onTap;
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: () {
-          // Firebase sign-in wired in Step 1.1
-        },
-        icon: _GoogleLogo(),
+        onPressed: onTap,
+        icon: const Icon(Icons.g_mobiledata, size: 24, color: Colors.red),
         label: const Text(AppStrings.signInWithGoogle),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white,
           foregroundColor: AppColors.textPrimary,
-          textStyle: AppTextStyles.button.copyWith(color: AppColors.textPrimary),
+          textStyle: AppTextStyles.button,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -81,17 +118,6 @@ class _GoogleSignInButton extends StatelessWidget {
           elevation: 0,
         ),
       ),
-    );
-  }
-}
-
-class _GoogleLogo extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return const SizedBox(
-      width: 22,
-      height: 22,
-      child: Icon(Icons.g_mobiledata, size: 22, color: Colors.red),
     );
   }
 }
