@@ -24,6 +24,33 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-17 — Steps 1.3 + 1.4: Memory Upload + Masonry Collage
+
+**What:**
+- `ExifData` model (takenAt, GPS coords, camera make/model)
+- `Memory` model with full Firestore serialization
+- `ExifExtractor` utility (JPEG byte parser, falls back to file mtime)
+- `MemoryRepository`: `uploadMemory` (compress → thumbnail → Storage upload → Firestore doc), `watchMemories` (real-time stream), `getMemory`, `updateCaption`, `addTags`, `deleteMemory`
+- `memoriesProvider` (StreamProvider), `memoriesByMonthProvider` (grouped by "MMMM yyyy")
+- `UploadNotifier` + sealed `UploadState` (idle/inProgress/success/error)
+- `MemoryCard` widget: `CachedNetworkImage` thumbnail, caption gradient overlay
+- `MemoryDetailScreen`: full-screen photo, editable caption, tag chips, delete with confirm dialog
+- `CollageScreen` (full implementation):
+  - `SliverMasonryGrid` grouped by month with count badge
+  - Upload FAB → bottom sheet (camera / gallery) → compress → upload
+  - Upload progress spinner replaces FAB during upload
+  - Shimmer loading state (6 placeholder cards)
+  - Empty state with icon + guidance text
+- `flutter analyze`: zero issues
+
+**Why:**
+- Steps 1.3 and 1.4 — the core experience: photos in, masonry collage out
+
+**What's next:**
+- Step 1.5: Family invite system (QR code, roles, invite Cloud Function)
+
+---
+
 ## 2026-05-17 — Step 1.2: Baby Profile Setup
 
 **What:**
