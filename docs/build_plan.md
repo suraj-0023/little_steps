@@ -1,9 +1,11 @@
 # LittleSteps — Master Build Plan
 
 **Last Updated:** 2026-05-17
-**Current Status:** Pre-build — setup complete, Phase 1 not yet started
+**Current Status:** Pre-build — dev environment not yet installed (Flutter, Android Studio, Java missing)
 **Single source of truth** for all Claude Code sessions. Tick checkboxes as each task completes.
 **How to use:** On session start, read this file, find the first unticked checkbox, and continue from there.
+
+> **Before Step 0.1:** Complete all steps in [`docs/dev_environment_setup.md`](dev_environment_setup.md) first. `flutter doctor` must pass with zero critical errors.
 
 ---
 

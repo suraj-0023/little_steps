@@ -24,4 +24,21 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-17 — Build Attempt #1 / Environment Check
+
+**What:**
+- Attempted to start Flutter project scaffold (Step 0.1)
+- Discovered Flutter SDK, Android Studio, and Java are not installed on this machine
+- Created `docs/dev_environment_setup.md` with step-by-step install guide
+
+**Why:**
+- Can't run `flutter create` or verify any code without the toolchain
+
+**What's next:**
+- User installs Flutter, Android Studio, Java, Firebase CLI, FlutterFire CLI
+- Run `flutter doctor` to confirm zero critical errors
+- Then start Step 0.1 of build plan
+
+---
+
 _Add new entries above this line, newest first._
