@@ -24,6 +24,30 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-17 — Step 1.2: Baby Profile Setup
+
+**What:**
+- Updated `AndroidManifest.xml`: camera, storage, notification permissions + UCropActivity
+- Added flavor string resources (`app_name`) for dev and prod
+- `Baby` model with Firestore serialization and `firstName` getter
+- `BabyRepository`: `createBaby` (batch-writes family + baby docs + updates user), `watchBaby`, `updateBaby`, `uploadCoverPhoto` with image compression
+- `babyRepositoryProvider`, `currentBabyProvider`, `newFamilyIdProvider` (Riverpod)
+- `BabyAvatar` widget: `CircleAvatar` with `CachedNetworkImage` or initials fallback
+- `BabySetupScreen`: 3-step `PageView` with animated step indicator
+  - Step 1: Baby name text field
+  - Step 2: Date-of-birth picker (calendar dialog)
+  - Step 3: Cover photo picker (gallery) + skip option
+  - On finish: creates family + baby in Firestore, updates user doc, navigates to `/home`
+- `flutter analyze`: zero issues
+
+**Why:**
+- Step 1.2 — new users land here after first sign-in; no other screen is accessible until setup is complete
+
+**What's next:**
+- Step 1.3: Memory upload (image picker → EXIF extraction → Firebase Storage → Firestore)
+
+---
+
 ## 2026-05-17 — Step 1.1: Firebase Init + Auth Feature
 
 **What:**
