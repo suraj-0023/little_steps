@@ -19,9 +19,18 @@ class AuthRepository {
   final GoogleSignIn _googleSignIn;
 
   Stream<AppUser?> authStateChanges() {
-    return _auth.authStateChanges().asyncMap((firebaseUser) async {
-      if (firebaseUser == null) return null;
-      return _fetchOrCreateUser(firebaseUser);
+    return _auth.authStateChanges().asyncExpand((firebaseUser) {
+      if (firebaseUser == null) return Stream.value(null);
+      return _firestore
+          .collection(AppConstants.usersCollection)
+          .doc(firebaseUser.uid)
+          .snapshots()
+          .asyncMap((doc) async {
+        if (!doc.exists) {
+          return _fetchOrCreateUser(firebaseUser);
+        }
+        return AppUser.fromFirestore(doc.data()!, firebaseUser.uid);
+      });
     });
   }
 

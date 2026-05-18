@@ -14,6 +14,7 @@ import '../../memory/models/memory.dart';
 import '../../memory/notifiers/upload_notifier.dart';
 import '../../memory/providers/memory_providers.dart';
 import '../../memory/widgets/memory_card.dart';
+import '../widgets/on_this_day_card.dart';
 
 class CollageScreen extends ConsumerWidget {
   const CollageScreen({super.key});
@@ -156,7 +157,9 @@ class _MasonryCollage extends StatelessWidget {
     final months = grouped.keys.toList();
 
     return CustomScrollView(
-      slivers: months.map((month) {
+      slivers: [
+        const OnThisDayCard(),
+        ...months.map((month) {
         final memories = grouped[month]!;
         return SliverMainAxisGroup(
           slivers: [
@@ -207,7 +210,8 @@ class _MasonryCollage extends StatelessWidget {
             const SliverToBoxAdapter(child: SizedBox(height: 8)),
           ],
         );
-      }).toList(),
+        }),
+      ],
     );
   }
 }

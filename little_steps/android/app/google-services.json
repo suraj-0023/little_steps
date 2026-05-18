@@ -12,7 +12,20 @@
           "package_name": "com.littlesteps.little_steps"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "465165495409-j4btt45ungoi9aeopa5nsuqcd3ok0alv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.littlesteps.little_steps",
+            "certificate_hash": "ae712dba82af0aa2616b98f4d9bf9d5ee05dfffd"
+          }
+        },
+        {
+          "client_id": "465165495409-icitmorebrnvocag24bcjleoqbfncaa5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAWJ9Kf_-_l7IaO-EbC4bZER3simG38YO8"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "465165495409-icitmorebrnvocag24bcjleoqbfncaa5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

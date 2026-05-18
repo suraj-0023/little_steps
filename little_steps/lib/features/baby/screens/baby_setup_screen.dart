@@ -1,8 +1,10 @@
+// ignore_for_file: use_build_context_synchronously
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../../core/constants/app_strings.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -229,7 +231,14 @@ class _NameStep extends StatelessWidget {
               child: const Text('Continue'),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 12),
+          Center(
+            child: TextButton(
+              onPressed: () => context.go('/join'),
+              child: const Text('Have an invite code? Join a family'),
+            ),
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );

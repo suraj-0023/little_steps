@@ -17,4 +17,7 @@ class AppConstants {
   static const String lettersCollection = 'letters';
   static const String storiesCollection = 'stories';
   static const String usersCollection = 'users';
+  static const String invitesCollection = 'invites';
+  static const String membersCollection = 'members';
+  static const String milestonesCollection = 'milestones';
 }

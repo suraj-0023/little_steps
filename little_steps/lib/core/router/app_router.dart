@@ -9,7 +9,11 @@ import '../../features/timeline/screens/timeline_screen.dart';
 import '../../features/stories/screens/stories_screen.dart';
 import '../../features/growth/screens/growth_screen.dart';
 import '../../features/family/screens/family_screen.dart';
+import '../../features/family/screens/invite_screen.dart';
+import '../../features/family/screens/join_family_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
+import '../../features/stories/screens/story_detail_screen.dart';
+import '../../features/timeline/screens/add_milestone_screen.dart';
 import '../../shared/app_shell.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -20,14 +24,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final user = authState.valueOrNull;
       final isLoggedIn = user != null;
-      final isAuthRoute = state.matchedLocation == '/auth';
-      final isSetupRoute = state.matchedLocation == '/baby/setup';
+      final loc = state.matchedLocation;
+      final isAuthRoute = loc == '/auth';
+      final isSetupRoute = loc == '/baby/setup';
+      final isJoinRoute = loc == '/join';
 
       if (!isLoggedIn && !isAuthRoute) return '/auth';
       if (isLoggedIn && isAuthRoute) {
         return user.hasFamily ? '/home' : '/baby/setup';
       }
-      if (isLoggedIn && !user.hasFamily && !isSetupRoute) return '/baby/setup';
+      if (isLoggedIn && !user.hasFamily && !isSetupRoute && !isJoinRoute) {
+        return '/baby/setup';
+      }
       return null;
     },
     routes: [
@@ -38,6 +46,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/baby/setup',
         builder: (context, state) => const BabySetupScreen(),
+      ),
+      GoRoute(
+        path: '/join',
+        builder: (context, state) => const JoinFamilyScreen(),
       ),
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
@@ -69,6 +81,20 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => MemoryDetailScreen(
           memoryId: state.pathParameters['memoryId']!,
         ),
+      ),
+      GoRoute(
+        path: '/family/invite',
+        builder: (context, state) => const InviteScreen(),
+      ),
+      GoRoute(
+        path: '/stories/:storyId',
+        builder: (context, state) => StoryDetailScreen(
+          storyId: state.pathParameters['storyId']!,
+        ),
+      ),
+      GoRoute(
+        path: '/timeline/add-milestone',
+        builder: (context, state) => const AddMilestoneScreen(),
       ),
       GoRoute(
         path: '/settings',

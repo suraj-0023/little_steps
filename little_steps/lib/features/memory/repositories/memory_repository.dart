@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/exif_extractor.dart';
+import '../../../core/utils/ml_tagger.dart';
 import '../models/memory.dart';
 
 class MemoryRepository {
@@ -33,6 +34,9 @@ class MemoryRepository {
     final exif = await ExifExtractor.extract(photo);
     final takenAt = exif.takenAt ?? now;
 
+    // Run on-device ML tagging on original before compression
+    final autoTags = await MlTagger.labelImage(photo);
+
     // Compress original
     final compressed = await _compress(photo, memoryId, 1920, 85);
     // Generate thumbnail
@@ -53,6 +57,7 @@ class MemoryRepository {
       uploadedBy: uploadedBy,
       createdAt: now,
       caption: caption,
+      tags: autoTags,
       exif: exif,
     );
 
