@@ -50,6 +50,13 @@ class CollageScreen extends ConsumerWidget {
           style: AppTextStyles.title,
         ),
         actions: [
+          Semantics(
+            label: 'Settings',
+            child: IconButton(
+              icon: const Icon(Icons.settings_outlined),
+              onPressed: () => context.push('/settings'),
+            ),
+          ),
           if (baby != null)
             Padding(
               padding: const EdgeInsets.only(right: 12),
@@ -132,6 +139,7 @@ class CollageScreen extends ConsumerWidget {
 
   Future<void> _pickAndUpload(
       BuildContext context, WidgetRef ref, ImageSource source) async {
+    if (ref.read(uploadNotifierProvider) is UploadInProgress) return;
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: source,

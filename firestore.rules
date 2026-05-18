@@ -1,0 +1,85 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper — check if requester is authenticated
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    // Helper — check if requester is a member of the family
+    function isFamilyMember(familyId) {
+      return isAuthed() &&
+        request.auth.uid in get(/databases/$(database)/documents/families/$(familyId)).data.members;
+    }
+
+    // Users can only read/write their own user document
+    match /users/{userId} {
+      allow read, write: if isAuthed() && request.auth.uid == userId;
+    }
+
+    // Family root document — readable/writable by members only
+    match /families/{familyId} {
+      allow read: if isFamilyMember(familyId);
+      allow create: if isAuthed();
+      allow update: if isFamilyMember(familyId);
+
+      // Babies — any family member can read; admin or editor can write
+      match /babies/{babyId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Memories — any member can read; members can write (role enforcement is app-level)
+      match /memories/{memoryId} {
+        allow read: if isFamilyMember(familyId);
+        allow create, update: if isFamilyMember(familyId);
+        allow delete: if isFamilyMember(familyId);
+      }
+
+      // Stories — any member can read; only Cloud Functions write (via Admin SDK)
+      match /stories/{storyId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if false;
+      }
+
+      // Growth logs — any family member can read/write
+      match /growthLogs/{entryId} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+
+      // Letters — members can create; only readable after unlock date
+      match /letters/{letterId} {
+        allow create: if isFamilyMember(familyId);
+        allow read: if isFamilyMember(familyId);
+        allow delete: if isFamilyMember(familyId)
+          && request.auth.uid == resource.data.authorId;
+        allow update: if false; // letters are immutable after creation
+      }
+
+      // Milestones
+      match /milestones/{milestoneId} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+
+      // Members subcollection
+      match /members/{memberId} {
+        allow read: if isFamilyMember(familyId);
+        allow write: if isFamilyMember(familyId);
+      }
+    }
+
+    // Invite codes — anyone authenticated can read (to join); only members can create
+    match /invites/{code} {
+      allow read: if isAuthed();
+      allow create: if isAuthed();
+      allow update: if isAuthed(); // to mark as used
+      allow delete: if false;
+    }
+
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

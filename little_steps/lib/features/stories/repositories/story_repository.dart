@@ -47,6 +47,9 @@ class StoryRepository {
         .doc(data['storyId'] as String? ?? monthKey);
 
     final doc = await docRef.get();
+    if (!doc.exists) {
+      throw Exception('Story not found after generation — storyId: ${data['storyId']}');
+    }
     return Story.fromFirestore(doc.data()!, doc.id);
   }
 

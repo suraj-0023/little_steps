@@ -1,14 +1,191 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../core/constants/app_strings.dart';
+import '../../../core/utils/app_logger.dart';
+import '../../auth/providers/auth_providers.dart';
+import '../../baby/providers/baby_providers.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    final baby = ref.watch(currentBabyProvider).valueOrNull;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: const Center(child: Text('Settings — coming in Phase 4', style: AppTextStyles.body)),
+      body: ListView(
+        children: [
+          // Profile section
+          _SectionHeader(title: 'Account'),
+          ListTile(
+            leading: user?.photoUrl != null
+                ? CircleAvatar(
+                    backgroundImage: NetworkImage(user?.photoUrl ?? ''),
+                  )
+                : const CircleAvatar(child: Icon(Icons.person)),
+            title: Text(user?.displayName ?? 'User', style: AppTextStyles.body),
+            subtitle: Text(user?.email ?? '', style: AppTextStyles.caption),
+          ),
+          const Divider(indent: 16, endIndent: 16),
+
+          // Baby section
+          if (baby != null) ...[
+            _SectionHeader(title: 'Memory Book'),
+            ListTile(
+              leading: const Icon(Icons.child_care, color: AppColors.primary),
+              title: Text(baby.name, style: AppTextStyles.body),
+              subtitle: Text('Born ${_formatDate(baby.dob)}',
+                  style: AppTextStyles.caption),
+            ),
+            const Divider(indent: 16, endIndent: 16),
+          ],
+
+          // Features
+          _SectionHeader(title: 'Features'),
+          _NavTile(
+            icon: Icons.mail_outline,
+            title: 'Letters to the Future',
+            onTap: () => context.push('/letters'),
+          ),
+          _NavTile(
+            icon: Icons.picture_as_pdf_outlined,
+            title: 'Export & Share',
+            onTap: () => context.push('/export'),
+          ),
+          _NavTile(
+            icon: Icons.slideshow_outlined,
+            title: 'Photo Reel',
+            onTap: () => context.push('/reel'),
+          ),
+          const Divider(indent: 16, endIndent: 16),
+
+          // Support
+          _SectionHeader(title: 'Support'),
+          _NavTile(
+            icon: Icons.star_outline,
+            title: 'Rate LittleSteps',
+            onTap: () {/* TODO: link to Play Store */},
+          ),
+          _NavTile(
+            icon: Icons.privacy_tip_outlined,
+            title: 'Privacy Policy',
+            onTap: () {/* TODO: open URL */},
+          ),
+          _NavTile(
+            icon: Icons.info_outline,
+            title: 'About',
+            onTap: () => _showAbout(context),
+          ),
+          const Divider(indent: 16, endIndent: 16),
+
+          // Sign out
+          ListTile(
+            leading: const Icon(Icons.logout, color: AppColors.error),
+            title: Text('Sign out',
+                style: AppTextStyles.body.copyWith(color: AppColors.error)),
+            onTap: () => _confirmSignOut(context, ref),
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  String _formatDate(DateTime dt) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
+  }
+
+  Future<void> _showAbout(BuildContext context) async {
+    PackageInfo? info;
+    try {
+      info = await PackageInfo.fromPlatform();
+    } catch (_) {}
+    if (!context.mounted) return;
+    showAboutDialog(
+      context: context,
+      applicationName: AppStrings.appName,
+      applicationVersion: info != null ? 'v${info.version}+${info.buildNumber}' : '1.0.0',
+      applicationIcon: const FlutterLogo(size: 48),
+      children: [
+        const Text(
+            'A beautiful baby memory book with AI-powered monthly stories.'),
+      ],
+    );
+  }
+
+  Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text('Your memories stay safe in the cloud.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text(AppStrings.cancel)),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(AppStrings.signOut)),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      try {
+        await ref.read(authRepositoryProvider).signOut();
+        if (context.mounted) context.go('/auth');
+      } catch (e) {
+        AppLogger.e('Sign out failed', e);
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sign out failed. Please try again.')),
+          );
+        }
+      }
+    }
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.title});
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 4),
+      child: Text(title.toUpperCase(), style: AppTextStyles.label),
+    );
+  }
+}
+
+class _NavTile extends StatelessWidget {
+  const _NavTile({
+    required this.icon,
+    required this.title,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Icon(icon, color: AppColors.primary),
+      title: Text(title, style: AppTextStyles.body),
+      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+      onTap: onTap,
     );
   }
 }

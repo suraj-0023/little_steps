@@ -5,6 +5,42 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-18 — Bug Fix Batch: Session 2 Remaining Fixes
+
+**What:** Fixed 7 remaining bugs identified by code review agents: sign-out navigation, Firestore rules stories write permission, Cloud Function Timestamp type mismatch, story repository null check, memory voice note cleanup, collage concurrent upload guard, and onboarding redirect synchronization.
+
+**Why:** Bug-hunting agents identified these issues from the previous session; they were deferred due to context limits.
+
+**Impact:** Sign-out now correctly navigates to auth screen. New users see onboarding before auth. Cloud Function story queries use correct Firestore Timestamp types instead of ISO strings. Concurrent uploads are guarded. Voice notes are properly cleaned up on memory deletion. Onboarding completion is synced to ensure proper navigation flow.
+
+**Technical Detail:**
+- `settings_screen.dart`: `context.go('/auth')` after sign-out + SnackBar error feedback
+- `firestore.rules`: stories write rule changed to `allow write: if false` (Cloud Functions Admin SDK only)
+- `functions/src/story_generator.ts`: ISO string dates → `admin.firestore.Timestamp.fromDate(...)` for range queries
+- `story_repository.dart`: added `!doc.exists` null check before `doc.data()!`
+- `memory_repository.dart`: `deleteMemory` now deletes `voice.m4a` from Storage (best-effort, catch errors)
+- `collage_screen.dart`: early return in `_pickAndUpload` if upload already in progress
+- `onboarding_provider.dart` + `main_dev.dart` + `main_prod.dart` + `app_router.dart`: `onboardingDoneSync` top-level bool read in `main()` for synchronous router redirect
+
+---
+
+## 2026-05-18 — Initial GitHub Push (Phases 0–2 Complete)
+
+**What**: First commit of the LittleSteps project to GitHub. Includes all Phase 0 (foundation), Phase 1 (core features), and Phase 2 (AI & intelligence) work.
+
+**Why**: Establishing version control baseline for the project.
+
+**Impact**: Full working app with Google Sign-In, Firebase Auth/Firestore/Storage, memory upload with ML Kit auto-tagging, timeline with milestones, family invite QR codes, FCM notifications, and monthly story generator (requires Cloud Functions deployment for AI stories).
+
+**Technical Detail**:
+- `lib/features/` — auth, baby, collage, memory, timeline, stories, growth, family, settings
+- `lib/core/` — router (GoRouter + ShellRoute), theme, constants, services (FCM), utilities (ML tagger)
+- `lib/shared/` — reusable widgets
+- `functions/src/` — story_generator Cloud Function (TypeScript, calls Claude Haiku API)
+- `android/` — Kotlin DSL Gradle, Firebase config, core library desugaring enabled
+
+---
+
 ## 2026-05-17 — Project Setup
 
 **What:**

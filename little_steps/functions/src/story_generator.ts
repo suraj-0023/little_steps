@@ -22,8 +22,8 @@ export const generateMonthlyStory = functions.https.onCall(
 
     // Fetch memories for the month
     const [year, month] = monthKey.split("-").map(Number);
-    const startDate = new Date(year, month - 1, 1).toISOString();
-    const endDate = new Date(year, month, 0, 23, 59, 59).toISOString();
+    const startDate = admin.firestore.Timestamp.fromDate(new Date(year, month - 1, 1));
+    const endDate = admin.firestore.Timestamp.fromDate(new Date(year, month, 0, 23, 59, 59));
 
     const memoriesSnap = await db
       .collection("families")

@@ -104,6 +104,19 @@ class MemoryRepository {
         .update({'caption': caption});
   }
 
+  Future<void> attachVoiceNote(
+      String familyId, String memoryId, File audioFile) async {
+    final path =
+        'families/$familyId/memories/$memoryId/voice.m4a';
+    final url = await _upload(audioFile, path);
+    await _firestore
+        .collection(AppConstants.familiesCollection)
+        .doc(familyId)
+        .collection(AppConstants.memoriesCollection)
+        .doc(memoryId)
+        .update({'voiceNoteUrl': url});
+  }
+
   Future<void> addTags(
       String familyId, String memoryId, List<String> tags) async {
     await _firestore
@@ -115,7 +128,7 @@ class MemoryRepository {
   }
 
   Future<void> deleteMemory(String familyId, String memoryId) async {
-    // Delete Storage files
+    // Delete Storage files (voice note deletion is best-effort)
     await Future.wait([
       _storage
           .ref('families/$familyId/memories/$memoryId/original.jpg')
@@ -123,6 +136,10 @@ class MemoryRepository {
           .catchError((_) {}),
       _storage
           .ref('families/$familyId/memories/$memoryId/thumb.jpg')
+          .delete()
+          .catchError((_) {}),
+      _storage
+          .ref('families/$familyId/memories/$memoryId/voice.m4a')
           .delete()
           .catchError((_) {}),
     ]);
