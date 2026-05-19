@@ -43,3 +43,21 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Firebase config — contains API keys, never commit
+google-services.json
+GoogleService-Info.plist
+
+# Android signing
+android/key.properties
+key.properties
+*.jks
+*.keystore
+*.p12
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+functions/.env*
+functions/.runtimeconfig.json

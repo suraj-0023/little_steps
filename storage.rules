@@ -1,0 +1,38 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthed() {
+      return request.auth != null;
+    }
+
+    // Verify caller is a member of the family by checking Firestore
+    function isFamilyMember(familyId) {
+      return isAuthed() &&
+        request.auth.uid in firestore.get(
+          /databases/(default)/documents/families/$(familyId)
+        ).data.members;
+    }
+
+    // Memory photos and voice notes — family members only
+    match /families/{familyId}/memories/{memoryId}/{file} {
+      allow read: if isFamilyMember(familyId);
+      allow create, update: if isFamilyMember(familyId)
+        && request.resource.size < 20 * 1024 * 1024;  // 20 MB max
+      allow delete: if isFamilyMember(familyId);
+    }
+
+    // Baby cover photos — family members only
+    match /families/{familyId}/babies/{babyId}/{file} {
+      allow read: if isFamilyMember(familyId);
+      allow create, update: if isFamilyMember(familyId)
+        && request.resource.size < 10 * 1024 * 1024;  // 10 MB max
+      allow delete: if isFamilyMember(familyId);
+    }
+
+    // Deny everything else
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
