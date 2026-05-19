@@ -1,7 +1,7 @@
 # LittleSteps — Project Summary
 
-**Last Updated:** 2026-05-18  
-**Current Phase:** Phase 2 complete, Phase 3 ready (Phases 0–2 in production, Stories & Export up next)
+**Last Updated:** 2026-05-19  
+**Current Phase:** Phase 3 in progress (Phases 0–2 complete, Stories & Export mostly done)
 
 ---
 
@@ -32,22 +32,25 @@ A multi-user Android baby memory app built in Flutter. Parents capture photos, t
 | Firebase Auth (Google Sign-In) | 1 | ✅ Complete |
 | Photo upload + EXIF extraction | 1 | ✅ Complete |
 | Masonry collage grid | 1 | ✅ Complete |
-| Baby profile (name, DOB, photo) | 1 | ✅ Complete |
+| Baby profile (name, DOB, photo, nickname) | 1–3 | ✅ Complete |
+| Unborn baby + Expected Delivery Date | 3 | ✅ Complete |
 | Family invites (QR + link, roles) | 1 | ✅ Complete |
 | Push notifications (FCM) | 1 | ✅ Complete |
 | ML Kit image tagging | 2 | ✅ Complete |
-| Monthly AI story (Claude Haiku) | 2 | ✅ Complete |
+| Monthly AI story (Claude Haiku) + Speech-to-Text | 2 | ✅ Complete |
 | AI milestone suggestions | 2 | ✅ Complete (13 types) |
 | Image editor (enhance + annotate) | 2 | On-device tagging only |
 | On This Day notifications | 2 | ✅ Complete |
-| PDF collage export | 3 | Not started |
-| Video reel (FFmpegKit) | 3 | Not started |
-| Letters to the Future | 3 | Not started |
-| Growth journal + charts | 3 | Not started |
-| Voice notes | 3 | Not started |
+| PDF collage export (4 templates) | 3 | ✅ Complete |
+| Video reel (FFmpegKit) + animated overlays | 3 | ✅ Complete |
+| Letters to the Future (public/private) | 3 | ✅ Complete |
+| Growth journal + charts (fixed) | 3 | ✅ Complete |
+| Voice notes | 3 | ✅ Complete |
+| Hamburger drawer navigation | 3 | ✅ Complete |
+| Firebase App Check (debug/Play Integrity) | 3 | ✅ Complete |
 | Performance audit | 4 | Not started |
 | Onboarding flow | 4 | Not started |
-| Multi-baby support | 4 | Not started |
+| Multi-baby switching | 4 | Not started |
 | Play Store submission | 4 | Not started |
 
 ---

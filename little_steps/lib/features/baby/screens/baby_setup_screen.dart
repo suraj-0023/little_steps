@@ -22,9 +22,12 @@ class BabySetupScreen extends ConsumerStatefulWidget {
 class _BabySetupScreenState extends ConsumerState<BabySetupScreen> {
   final _pageController = PageController();
   final _nameController = TextEditingController();
+  final _nicknameController = TextEditingController();
   final _nameFocus = FocusNode();
 
   DateTime? _selectedDob;
+  DateTime? _expectedDeliveryDate;
+  bool _isUnborn = false;
   File? _coverPhoto;
   bool _saving = false;
   int _currentPage = 0;
@@ -33,6 +36,7 @@ class _BabySetupScreenState extends ConsumerState<BabySetupScreen> {
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
+    _nicknameController.dispose();
     _nameFocus.dispose();
     super.dispose();
   }
@@ -59,15 +63,15 @@ class _BabySetupScreenState extends ConsumerState<BabySetupScreen> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: now.subtract(const Duration(days: 90)),
+      initialDate: _selectedDob ?? now,
       firstDate: now.subtract(const Duration(days: 365 * 5)),
       lastDate: now,
-      helpText: "When was your baby born?",
+      helpText: 'When was your baby born?',
       builder: (context, child) => Theme(
         data: Theme.of(context).copyWith(
-          colorScheme: Theme.of(context).colorScheme.copyWith(
-                primary: AppColors.primary,
-              ),
+          colorScheme: Theme.of(context)
+              .colorScheme
+              .copyWith(primary: AppColors.primary),
         ),
         child: child!,
       ),
@@ -75,12 +79,32 @@ class _BabySetupScreenState extends ConsumerState<BabySetupScreen> {
     if (picked != null) setState(() => _selectedDob = picked);
   }
 
+  Future<void> _pickEdd() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _expectedDeliveryDate ?? now.add(const Duration(days: 30)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 300)),
+      helpText: 'Expected delivery date',
+      builder: (context, child) => Theme(
+        data: Theme.of(context).copyWith(
+          colorScheme: Theme.of(context)
+              .colorScheme
+              .copyWith(primary: AppColors.primary),
+        ),
+        child: child!,
+      ),
+    );
+    if (picked != null) setState(() => _expectedDeliveryDate = picked);
+  }
+
   Future<void> _createBabyAndFamily() async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
 
     final name = _nameController.text.trim();
-    if (name.isEmpty || _selectedDob == null) return;
+    if (name.isEmpty) return;
 
     setState(() => _saving = true);
     try {
@@ -89,7 +113,12 @@ class _BabySetupScreenState extends ConsumerState<BabySetupScreen> {
             familyId: familyId,
             uid: user.uid,
             name: name,
-            dob: _selectedDob!,
+            nickname: _nicknameController.text.trim().isEmpty
+                ? null
+                : _nicknameController.text.trim(),
+            dob: _isUnborn ? null : _selectedDob,
+            isUnborn: _isUnborn,
+            expectedDeliveryDate: _isUnborn ? _expectedDeliveryDate : null,
             coverPhoto: _coverPhoto,
           );
       if (!mounted) return;
@@ -122,7 +151,8 @@ class _BabySetupScreenState extends ConsumerState<BabySetupScreen> {
                 onPageChanged: (i) => setState(() => _currentPage = i),
                 children: [
                   _NameStep(
-                    controller: _nameController,
+                    nameController: _nameController,
+                    nicknameController: _nicknameController,
                     focusNode: _nameFocus,
                     onNext: () {
                       if (_nameController.text.trim().isEmpty) return;
@@ -132,11 +162,12 @@ class _BabySetupScreenState extends ConsumerState<BabySetupScreen> {
                   ),
                   _DobStep(
                     selectedDob: _selectedDob,
+                    expectedDeliveryDate: _expectedDeliveryDate,
+                    isUnborn: _isUnborn,
+                    onToggleUnborn: (v) => setState(() => _isUnborn = v),
                     onPickDob: _pickDob,
-                    onNext: () {
-                      if (_selectedDob == null) return;
-                      _nextPage();
-                    },
+                    onPickEdd: _pickEdd,
+                    onNext: _nextPage,
                   ),
                   _PhotoStep(
                     coverPhoto: _coverPhoto,
@@ -155,7 +186,7 @@ class _BabySetupScreenState extends ConsumerState<BabySetupScreen> {
   }
 }
 
-// ── Step indicator ────────────────────────────────────────────────
+// ── Step indicator ─────────────────────────────────────────────────
 
 class _StepIndicator extends StatelessWidget {
   const _StepIndicator({required this.current});
@@ -185,16 +216,18 @@ class _StepIndicator extends StatelessWidget {
   }
 }
 
-// ── Step 1: Name ──────────────────────────────────────────────────
+// ── Step 1: Name + Nickname ────────────────────────────────────────
 
 class _NameStep extends StatelessWidget {
   const _NameStep({
-    required this.controller,
+    required this.nameController,
+    required this.nicknameController,
     required this.focusNode,
     required this.onNext,
   });
 
-  final TextEditingController controller;
+  final TextEditingController nameController;
+  final TextEditingController nicknameController;
   final FocusNode focusNode;
   final VoidCallback onNext;
 
@@ -208,11 +241,11 @@ class _NameStep extends StatelessWidget {
           const SizedBox(height: 40),
           const Text("What's your baby's name?", style: AppTextStyles.headline),
           const SizedBox(height: 8),
-          Text("You can always change this later.",
+          Text('You can always change this later.',
               style: AppTextStyles.bodySecondary),
           const SizedBox(height: 32),
           TextField(
-            controller: controller,
+            controller: nameController,
             focusNode: focusNode,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
@@ -222,6 +255,21 @@ class _NameStep extends StatelessWidget {
               prefixIcon: Icon(Icons.child_care_outlined),
             ),
             onSubmitted: (_) => onNext(),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: nicknameController,
+            textCapitalization: TextCapitalization.words,
+            style: AppTextStyles.body,
+            decoration: const InputDecoration(
+              hintText: 'Nickname (optional) — e.g. Cub, Bunny',
+              prefixIcon: Icon(Icons.favorite_outline),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'The nickname can be set as the display name in the app.',
+            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
           ),
           const Spacer(),
           SizedBox(
@@ -245,18 +293,29 @@ class _NameStep extends StatelessWidget {
   }
 }
 
-// ── Step 2: Date of Birth ─────────────────────────────────────────
+// ── Step 2: Date of Birth (optional) ──────────────────────────────
 
 class _DobStep extends StatelessWidget {
   const _DobStep({
     required this.selectedDob,
+    required this.expectedDeliveryDate,
+    required this.isUnborn,
+    required this.onToggleUnborn,
     required this.onPickDob,
+    required this.onPickEdd,
     required this.onNext,
   });
 
   final DateTime? selectedDob;
+  final DateTime? expectedDeliveryDate;
+  final bool isUnborn;
+  final ValueChanged<bool> onToggleUnborn;
   final VoidCallback onPickDob;
+  final VoidCallback onPickEdd;
   final VoidCallback onNext;
+
+  String _fmt(DateTime dt) =>
+      '${dt.day.toString().padLeft(2, '0')} / ${dt.month.toString().padLeft(2, '0')} / ${dt.year}';
 
   @override
   Widget build(BuildContext context) {
@@ -266,52 +325,81 @@ class _DobStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-          const Text("When was your baby born?", style: AppTextStyles.headline),
+          Text(
+            isUnborn ? 'When is the baby due?' : 'When was your baby born?',
+            style: AppTextStyles.headline,
+          ),
           const SizedBox(height: 8),
-          Text("Used to calculate milestones and age.",
-              style: AppTextStyles.bodySecondary),
-          const SizedBox(height: 32),
-          GestureDetector(
-            onTap: onPickDob,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: selectedDob != null
-                      ? AppColors.primary
-                      : AppColors.divider,
-                  width: selectedDob != null ? 2 : 1,
+          Text(
+            'Used to calculate milestones and age.',
+            style: AppTextStyles.bodySecondary,
+          ),
+          const SizedBox(height: 20),
+          // Unborn toggle
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.pregnant_woman_outlined,
+                    color: AppColors.primary),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text('Baby is not born yet',
+                      style: AppTextStyles.body),
                 ),
-                borderRadius: BorderRadius.circular(12),
-                color: AppColors.card,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.cake_outlined,
-                    color: selectedDob != null
-                        ? AppColors.primary
-                        : AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    selectedDob != null
-                        ? "${selectedDob!.day} / ${selectedDob!.month} / ${selectedDob!.year}"
-                        : AppStrings.babyDob,
-                    style: selectedDob != null
-                        ? AppTextStyles.title.copyWith(color: AppColors.primary)
-                        : AppTextStyles.bodySecondary,
-                  ),
-                ],
-              ),
+                Switch(
+                  value: isUnborn,
+                  onChanged: onToggleUnborn,
+                  thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? AppColors.primary : null),
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 16),
+          if (!isUnborn) ...[
+            GestureDetector(
+              onTap: onPickDob,
+              child: _DateField(
+                icon: Icons.cake_outlined,
+                label: selectedDob != null
+                    ? _fmt(selectedDob!)
+                    : AppStrings.babyDob,
+                isSet: selectedDob != null,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Optional — you can add this later.',
+              style: AppTextStyles.caption
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+          ] else ...[
+            GestureDetector(
+              onTap: onPickEdd,
+              child: _DateField(
+                icon: Icons.event_outlined,
+                label: expectedDeliveryDate != null
+                    ? 'Due ${_fmt(expectedDeliveryDate!)}'
+                    : 'Set expected delivery date',
+                isSet: expectedDeliveryDate != null,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              "We'll remind you to update the birth date after the due date arrives.",
+              style: AppTextStyles.caption
+                  .copyWith(color: AppColors.textSecondary),
+            ),
+          ],
           const Spacer(),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: selectedDob != null ? onNext : null,
+              onPressed: onNext,
               child: const Text('Continue'),
             ),
           ),
@@ -322,7 +410,47 @@ class _DobStep extends StatelessWidget {
   }
 }
 
-// ── Step 3: Cover Photo ───────────────────────────────────────────
+class _DateField extends StatelessWidget {
+  const _DateField({
+    required this.icon,
+    required this.label,
+    required this.isSet,
+  });
+  final IconData icon;
+  final String label;
+  final bool isSet;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: isSet ? AppColors.primary : AppColors.divider,
+          width: isSet ? 2 : 1,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        color: AppColors.card,
+      ),
+      child: Row(
+        children: [
+          Icon(icon,
+              color: isSet ? AppColors.primary : AppColors.textSecondary),
+          const SizedBox(width: 12),
+          Text(
+            label,
+            style: isSet
+                ? AppTextStyles.title.copyWith(color: AppColors.primary)
+                : AppTextStyles.bodySecondary,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Step 3: Cover Photo ────────────────────────────────────────────
 
 class _PhotoStep extends StatelessWidget {
   const _PhotoStep({
@@ -347,9 +475,9 @@ class _PhotoStep extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 40),
-          const Text("Add a cover photo", style: AppTextStyles.headline),
+          const Text('Add a cover photo', style: AppTextStyles.headline),
           const SizedBox(height: 8),
-          Text("A photo of your baby for the memory book cover.",
+          Text('A photo of your baby for the memory book cover.',
               style: AppTextStyles.bodySecondary),
           const SizedBox(height: 40),
           Center(

@@ -5,6 +5,51 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-19 — Major Feature Batch: Navigation Overhaul, Baby Profiles, Letters, Export & Bug Fixes
+
+### What
+- Replaced bottom navigation bar with hamburger drawer containing all navigation (Home, Timeline, Stories, Growth, Letters, Export, Reel, Family, Settings)
+- Added baby nickname support with family-wide display toggle (admin/editor only); `Baby.displayName` getter respects preference
+- Made baby DOB optional; added unborn baby flow with Expected Delivery Date field in setup
+- Fixed default DOB date picker showing February (was incorrectly subtracting 90 days)
+- Multiple photo gallery upload in a single flow
+- Text note and voice note sections in memory detail view (labeled separately with styled containers)
+- Public/private toggle on Letters to Future with collapsible FAQ InfoCard explaining lock mechanics
+- 4 PDF export templates: Soft Pastel, Bold Modern, Classic Scrapbook, Minimal Clean
+- Photo Reel: animated text overlays (fade + slide effects) for baby name, caption, date, and tags with progress bar
+- Fixed growth section "something went wrong" error by removing composite index requirement (client-side sort added)
+- Fixed story generation failure: root cause was Timestamp range queries; changed to ISO string comparisons
+- Firebase App Check: `AndroidProvider.debug` for dev, `AndroidProvider.playIntegrity` for prod
+- Added Google Cloud Speech-to-Text dependency for voice note transcription in story generator
+
+### Why
+- Bottom nav was cluttered with too many features; hamburger drawer scales better and keeps all screens accessible
+- Families wanted to use nickname as the primary display name for babies
+- Support for expectant parents tracking before birth (not just from birth)
+- Story generation was silently failing in production due to Firestore Timestamp vs ISO string type mismatch
+- Growth chart was crashing due to missing composite index; client-side sorting eliminates that requirement
+- Speech-to-Text enriches story context with transcribed voice note content
+
+### Impact
+- All major navigation now accessible from any screen via hamburger menu
+- Stories now generate correctly with rich context (captions + transcribed voice notes)
+- Growth chart works out-of-box without manual index creation
+- App Check improves security posture for Firebase access
+- Expectant parent flow enables app usage before baby is born
+
+### Technical Detail
+- `AppShell` uses `GlobalKey<ScaffoldState>` with static `openDrawer()` method for cross-screen drawer access
+- `ShellRoute` expanded to include Letters, Export, Reel, Settings, Family so drawer is available on all screens
+- `Baby.displayName` getter: returns `nickname` if `useNicknameDisplay && nickname != null`, else `firstName`
+- `BabySetupScreen`: Step 1 adds nickname field; Step 2 has "Baby not born yet" toggle + EDD picker; DOB made nullable
+- `story_generator.ts`: ISO string date range (`startStr`/`endStr`) replaces Timestamp.fromDate().toDate() queries; Speech-to-Text integration
+- `GrowthRepository`: removed `.orderBy('date')`, client-side sort added via `...sort((a, b) => a.date.compareTo(b.date))`
+- `PdfTemplate` enum with 4 coded styles dispatched in `buildMemoryPdf` switch statement
+- `flutter analyze`: 0 errors, 0 warnings
+- Files changed: 20+ feature screens, 2 models, 3 repositories, router, shell, drawer, Cloud Function, package.json
+
+---
+
 ## 2026-05-18 — Initial GitHub Push (Phases 0–2 Complete)
 
 **What**: First commit of the LittleSteps project to GitHub. Includes all Phase 0 (foundation), Phase 1 (core features), and Phase 2 (AI & intelligence) work.

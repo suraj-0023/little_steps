@@ -64,36 +64,27 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/join',
         builder: (context, state) => const JoinFamilyScreen(),
       ),
+      // All drawer-accessible screens live inside the shell so the
+      // hamburger + drawer is available on every one of them.
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
         routes: [
-          GoRoute(
-            path: '/home',
-            builder: (context, state) => const CollageScreen(),
-          ),
-          GoRoute(
-            path: '/timeline',
-            builder: (context, state) => const TimelineScreen(),
-          ),
-          GoRoute(
-            path: '/stories',
-            builder: (context, state) => const StoriesScreen(),
-          ),
-          GoRoute(
-            path: '/growth',
-            builder: (context, state) => const GrowthScreen(),
-          ),
-          GoRoute(
-            path: '/family',
-            builder: (context, state) => const FamilyScreen(),
-          ),
+          GoRoute(path: '/home', builder: (context, state) => const CollageScreen()),
+          GoRoute(path: '/timeline', builder: (context, state) => const TimelineScreen()),
+          GoRoute(path: '/stories', builder: (context, state) => const StoriesScreen()),
+          GoRoute(path: '/growth', builder: (context, state) => const GrowthScreen()),
+          GoRoute(path: '/family', builder: (context, state) => const FamilyScreen()),
+          GoRoute(path: '/letters', builder: (context, state) => const LettersScreen()),
+          GoRoute(path: '/export', builder: (context, state) => const ExportScreen()),
+          GoRoute(path: '/reel', builder: (context, state) => const ReelScreen()),
+          GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
         ],
       ),
+      // Detail / modal screens outside the shell (no drawer needed)
       GoRoute(
         path: '/memory/:memoryId',
-        builder: (context, state) => MemoryDetailScreen(
-          memoryId: state.pathParameters['memoryId']!,
-        ),
+        builder: (context, state) =>
+            MemoryDetailScreen(memoryId: state.pathParameters['memoryId']!),
       ),
       GoRoute(
         path: '/family/invite',
@@ -101,21 +92,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/stories/:storyId',
-        builder: (context, state) => StoryDetailScreen(
-          storyId: state.pathParameters['storyId']!,
-        ),
+        builder: (context, state) =>
+            StoryDetailScreen(storyId: state.pathParameters['storyId']!),
       ),
       GoRoute(
         path: '/timeline/add-milestone',
         builder: (context, state) => const AddMilestoneScreen(),
-      ),
-      GoRoute(
-        path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
-      ),
-      GoRoute(
-        path: '/letters',
-        builder: (context, state) => const LettersScreen(),
       ),
       GoRoute(
         path: '/letters/write',
@@ -123,17 +105,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/letters/:letterId',
-        builder: (context, state) => LetterDetailScreen(
-          letterId: state.pathParameters['letterId']!,
-        ),
-      ),
-      GoRoute(
-        path: '/export',
-        builder: (context, state) => const ExportScreen(),
-      ),
-      GoRoute(
-        path: '/reel',
-        builder: (context, state) => const ReelScreen(),
+        builder: (context, state) =>
+            LetterDetailScreen(letterId: state.pathParameters['letterId']!),
       ),
     ],
   );

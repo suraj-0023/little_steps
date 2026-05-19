@@ -1,3 +1,4 @@
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,6 +18,10 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   onboardingDoneSync = prefs.getBool('onboarding_done') ?? false;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  // App Check — debug provider for dev builds (no Play Integrity needed)
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.debug,
+  );
   await NotificationService.initialize();
   runApp(const ProviderScope(child: LittleStepsApp()));
 }

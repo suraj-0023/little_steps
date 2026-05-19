@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../shared/app_shell.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../baby/providers/baby_providers.dart';
 import '../../memory/providers/memory_providers.dart';
@@ -28,7 +29,13 @@ class StoriesScreen extends ConsumerWidget {
       ..sort((a, b) => b.compareTo(a));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Stories')),
+      appBar: AppBar(
+        title: const Text('Stories'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: AppShell.openDrawer,
+        ),
+      ),
       body: storiesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

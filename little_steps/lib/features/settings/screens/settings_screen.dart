@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../../shared/app_shell.dart';
+import '../../auth/models/app_user.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../baby/providers/baby_providers.dart';
 
@@ -16,61 +19,100 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
     final baby = ref.watch(currentBabyProvider).valueOrNull;
+    final isEditor = user?.role == UserRole.admin ||
+        user?.role == UserRole.editor;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: AppShell.openDrawer,
+        ),
+      ),
       body: ListView(
         children: [
-          // Profile section
+          // Account
           _SectionHeader(title: 'Account'),
           ListTile(
-            leading: user?.photoUrl != null
+            leading: user?.photoUrl.isNotEmpty == true
                 ? CircleAvatar(
-                    backgroundImage: NetworkImage(user?.photoUrl ?? ''),
+                    backgroundImage: NetworkImage(user!.photoUrl),
                   )
                 : const CircleAvatar(child: Icon(Icons.person)),
             title: Text(user?.displayName ?? 'User', style: AppTextStyles.body),
-            subtitle: Text(user?.email ?? '', style: AppTextStyles.caption),
+            subtitle:
+                Text(user?.email ?? '', style: AppTextStyles.caption),
           ),
           const Divider(indent: 16, endIndent: 16),
 
-          // Baby section
+          // Baby profile
           if (baby != null) ...[
-            _SectionHeader(title: 'Memory Book'),
+            _SectionHeader(title: 'Baby Profile'),
             ListTile(
-              leading: const Icon(Icons.child_care, color: AppColors.primary),
+              leading:
+                  const Icon(Icons.child_care, color: AppColors.primary),
               title: Text(baby.name, style: AppTextStyles.body),
-              subtitle: Text('Born ${_formatDate(baby.dob)}',
-                  style: AppTextStyles.caption),
+              subtitle: Text(
+                baby.dob != null
+                    ? 'Born ${_formatDate(baby.dob!)}'
+                    : baby.isUnborn
+                        ? baby.expectedDeliveryDate != null
+                            ? 'Due ${_formatDate(baby.expectedDeliveryDate!)}'
+                            : 'Not born yet'
+                        : 'Birthday not set',
+                style: AppTextStyles.caption,
+              ),
             ),
+            if (baby.nickname != null) ...[
+              // Nickname display toggle — editor/admin only, family-wide
+              ListTile(
+                leading: const Icon(Icons.favorite_outline,
+                    color: AppColors.primary),
+                title: Text(
+                  'Show nickname "${baby.nickname}"',
+                  style: AppTextStyles.body,
+                ),
+                subtitle: Text(
+                  isEditor
+                      ? 'Changes display name for all family members'
+                      : 'Only editors can change this',
+                  style: AppTextStyles.caption,
+                ),
+                trailing: Switch(
+                  value: baby.useNicknameDisplay,
+                  onChanged: isEditor
+                      ? (val) async {
+                          try {
+                            await ref
+                                .read(babyRepositoryProvider)
+                                .updateBaby(
+                                    baby.copyWith(useNicknameDisplay: val));
+                          } catch (e) {
+                            AppLogger.e('Update display name pref failed', e);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text(AppStrings.genericError)),
+                              );
+                            }
+                          }
+                        }
+                      : null,
+                  thumbColor: WidgetStateProperty.resolveWith((s) => s.contains(WidgetState.selected) ? AppColors.primary : null),
+                ),
+              ),
+            ],
             const Divider(indent: 16, endIndent: 16),
           ],
-
-          // Features
-          _SectionHeader(title: 'Features'),
-          _NavTile(
-            icon: Icons.mail_outline,
-            title: 'Letters to the Future',
-            onTap: () => context.push('/letters'),
-          ),
-          _NavTile(
-            icon: Icons.picture_as_pdf_outlined,
-            title: 'Export & Share',
-            onTap: () => context.push('/export'),
-          ),
-          _NavTile(
-            icon: Icons.slideshow_outlined,
-            title: 'Photo Reel',
-            onTap: () => context.push('/reel'),
-          ),
-          const Divider(indent: 16, endIndent: 16),
 
           // Support
           _SectionHeader(title: 'Support'),
           _NavTile(
             icon: Icons.star_outline,
             title: 'Rate LittleSteps',
-            onTap: () {/* TODO: link to Play Store */},
+            onTap: () {/* TODO: Play Store link */},
           ),
           _NavTile(
             icon: Icons.privacy_tip_outlined,
@@ -114,7 +156,8 @@ class SettingsScreen extends ConsumerWidget {
     showAboutDialog(
       context: context,
       applicationName: AppStrings.appName,
-      applicationVersion: info != null ? 'v${info.version}+${info.buildNumber}' : '1.0.0',
+      applicationVersion:
+          info != null ? 'v${info.version}+${info.buildNumber}' : '1.0.0',
       applicationIcon: const FlutterLogo(size: 48),
       children: [
         const Text(
@@ -147,7 +190,8 @@ class SettingsScreen extends ConsumerWidget {
         AppLogger.e('Sign out failed', e);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Sign out failed. Please try again.')),
+            const SnackBar(
+                content: Text('Sign out failed. Please try again.')),
           );
         }
       }

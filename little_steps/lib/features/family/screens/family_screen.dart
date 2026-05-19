@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
+import '../../../shared/app_shell.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../providers/family_providers.dart';
 import '../widgets/member_tile.dart';
@@ -28,6 +29,10 @@ class FamilyScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Family Circle'),
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: AppShell.openDrawer,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_add_outlined),

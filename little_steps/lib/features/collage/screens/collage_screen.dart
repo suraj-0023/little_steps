@@ -8,8 +8,8 @@ import 'package:shimmer/shimmer.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../shared/app_shell.dart';
 import '../../baby/providers/baby_providers.dart';
-import '../../baby/widgets/baby_avatar.dart';
 import '../../memory/models/memory.dart';
 import '../../memory/notifiers/upload_notifier.dart';
 import '../../memory/providers/memory_providers.dart';
@@ -26,7 +26,6 @@ class CollageScreen extends ConsumerWidget {
     final grouped = ref.watch(memoriesByMonthProvider);
     final uploadState = ref.watch(uploadNotifierProvider);
 
-    // Show upload progress snackbar
     ref.listen(uploadNotifierProvider, (_, state) {
       if (state is UploadSuccess) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -45,8 +44,12 @@ class CollageScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.menu),
+          onPressed: AppShell.openDrawer,
+        ),
         title: Text(
-          baby != null ? "${baby.firstName}'s Memory Book" : AppStrings.appName,
+          baby != null ? "${baby.displayName}'s Memory Book" : AppStrings.appName,
           style: AppTextStyles.title,
         ),
         actions: [
@@ -57,11 +60,6 @@ class CollageScreen extends ConsumerWidget {
               onPressed: () => context.push('/settings'),
             ),
           ),
-          if (baby != null)
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: BabyAvatar(baby: baby),
-            ),
         ],
       ),
       body: memoriesAsync.when(
@@ -72,21 +70,22 @@ class CollageScreen extends ConsumerWidget {
           return _MasonryCollage(grouped: grouped);
         },
       ),
+      // Icon-only FAB — no text label
       floatingActionButton: uploadState is UploadInProgress
-          ? const FloatingActionButton.extended(
+          ? FloatingActionButton(
               onPressed: null,
-              icon: SizedBox(
-                width: 20,
-                height: 20,
+              backgroundColor: AppColors.primary.withValues(alpha: 0.6),
+              child: const SizedBox(
+                width: 22,
+                height: 22,
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: Colors.white),
+                    strokeWidth: 2.5, color: Colors.white),
               ),
-              label: Text('Uploading…'),
             )
-          : FloatingActionButton.extended(
+          : FloatingActionButton(
               onPressed: () => _showUploadSheet(context, ref),
-              icon: const Icon(Icons.add_a_photo),
-              label: const Text('Add memory'),
+              backgroundColor: AppColors.primary,
+              child: const Icon(Icons.add_a_photo, color: Colors.white),
             ),
     );
   }
@@ -125,9 +124,10 @@ class CollageScreen extends ConsumerWidget {
                 leading: const Icon(Icons.photo_library_outlined,
                     color: AppColors.primary),
                 title: const Text(AppStrings.chooseFromGallery),
+                subtitle: const Text('Select multiple photos at once'),
                 onTap: () {
                   Navigator.pop(context);
-                  _pickAndUpload(context, ref, ImageSource.gallery);
+                  _pickMultipleAndUpload(context, ref);
                 },
               ),
             ],
@@ -152,6 +152,24 @@ class CollageScreen extends ConsumerWidget {
         .read(uploadNotifierProvider.notifier)
         .uploadPhoto(File(picked.path));
   }
+
+  Future<void> _pickMultipleAndUpload(
+      BuildContext context, WidgetRef ref) async {
+    if (ref.read(uploadNotifierProvider) is UploadInProgress) return;
+    final picker = ImagePicker();
+    final picked = await picker.pickMultiImage(
+      maxWidth: 1920,
+      maxHeight: 1920,
+      imageQuality: 90,
+    );
+    if (picked.isEmpty) return;
+    // Upload one by one — each triggers its own upload notifier cycle
+    for (final xFile in picked) {
+      await ref
+          .read(uploadNotifierProvider.notifier)
+          .uploadPhoto(File(xFile.path));
+    }
+  }
 }
 
 // ── Masonry collage ───────────────────────────────────────────────
@@ -168,56 +186,55 @@ class _MasonryCollage extends StatelessWidget {
       slivers: [
         const OnThisDayCard(),
         ...months.map((month) {
-        final memories = grouped[month]!;
-        return SliverMainAxisGroup(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-                child: Row(
-                  children: [
-                    Text(month, style: AppTextStyles.title),
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
+          final memories = grouped[month]!;
+          return SliverMainAxisGroup(
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                  child: Row(
+                    children: [
+                      Text(month, style: AppTextStyles.title),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${memories.length}',
+                          style: AppTextStyles.caption
+                              .copyWith(color: AppColors.primary),
+                        ),
                       ),
-                      child: Text(
-                        '${memories.length}',
-                        style: AppTextStyles.caption
-                            .copyWith(color: AppColors.primary),
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              sliver: SliverMasonryGrid.count(
-                crossAxisCount: 2,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childCount: memories.length,
-                itemBuilder: (context, i) {
-                  final memory = memories[i];
-                  return AspectRatio(
-                    aspectRatio: i % 3 == 0 ? 0.85 : 1.1,
-                    child: MemoryCard(
-                      memory: memory,
-                      onTap: () =>
-                          context.push('/memory/${memory.id}'),
-                    ),
-                  );
-                },
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                sliver: SliverMasonryGrid.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                  childCount: memories.length,
+                  itemBuilder: (context, i) {
+                    final memory = memories[i];
+                    return AspectRatio(
+                      aspectRatio: i % 3 == 0 ? 0.85 : 1.1,
+                      child: MemoryCard(
+                        memory: memory,
+                        onTap: () => context.push('/memory/${memory.id}'),
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 8)),
-          ],
-        );
+              const SliverToBoxAdapter(child: SizedBox(height: 8)),
+            ],
+          );
         }),
       ],
     );
@@ -236,7 +253,8 @@ class _EmptyState extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.photo_library_outlined,
-                size: 80, color: AppColors.textSecondary.withValues(alpha: 0.4)),
+                size: 80,
+                color: AppColors.textSecondary.withValues(alpha: 0.4)),
             const SizedBox(height: 24),
             const Text(AppStrings.addFirstMemory, style: AppTextStyles.title),
             const SizedBox(height: 8),

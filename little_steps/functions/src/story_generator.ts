@@ -2,9 +2,49 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import { VertexAI } from "@google-cloud/vertexai";
 import { GoogleAuth } from "google-auth-library";
+import * as speech from "@google-cloud/speech";
 
 const db = admin.firestore();
 const storage = admin.storage();
+const speechClient = new speech.SpeechClient();
+
+// Extract Firebase Storage path from a download URL
+function storagePathFromUrl(url: string): string | null {
+  try {
+    const urlObj = new URL(url);
+    const parts = urlObj.pathname.split("/o/");
+    if (parts.length < 2) return null;
+    return decodeURIComponent(parts[1].split("?")[0]);
+  } catch {
+    return null;
+  }
+}
+
+async function transcribeVoiceNote(voiceNoteUrl: string): Promise<string> {
+  const path = storagePathFromUrl(voiceNoteUrl);
+  if (!path) return "";
+  try {
+    const bucket = storage.bucket();
+    const [audioBytes] = await bucket.file(path).download();
+    const base64Audio = audioBytes.toString("base64");
+    const [response] = await speechClient.recognize({
+      config: {
+        encoding: "ENCODING_UNSPECIFIED" as const,
+        languageCode: "en-US",
+        enableAutomaticPunctuation: true,
+        model: "latest_short",
+      },
+      audio: { content: base64Audio },
+    });
+    return response.results
+      ?.map((r) => r.alternatives?.[0]?.transcript ?? "")
+      .filter(Boolean)
+      .join(" ") ?? "";
+  } catch (err) {
+    console.error("Speech-to-text failed:", err);
+    return "";
+  }
+}
 
 export const generateMonthlyStory = functions.https.onCall(
   async (request) => {
@@ -25,17 +65,19 @@ export const generateMonthlyStory = functions.https.onCall(
     const projectId = process.env.GCLOUD_PROJECT!;
     const location = "us-central1";
 
-    // Fetch memories for the month using Firestore Timestamps
+    // ISO string range query (takenAt is stored as ISO string in Firestore)
     const [year, month] = monthKey.split("-").map(Number);
-    const startDate = admin.firestore.Timestamp.fromDate(new Date(year, month - 1, 1));
-    const endDate = admin.firestore.Timestamp.fromDate(new Date(year, month, 0, 23, 59, 59));
+    const monthStr = String(month).padStart(2, "0");
+    const lastDay = new Date(year, month, 0).getDate();
+    const startStr = `${year}-${monthStr}-01`;
+    const endStr = `${year}-${monthStr}-${String(lastDay).padStart(2, "0")}T23:59:59`;
 
     const memoriesSnap = await db
       .collection("families")
       .doc(familyId)
       .collection("memories")
-      .where("takenAt", ">=", startDate)
-      .where("takenAt", "<=", endDate)
+      .where("takenAt", ">=", startStr)
+      .where("takenAt", "<=", endStr)
       .orderBy("takenAt")
       .get();
 
@@ -43,24 +85,42 @@ export const generateMonthlyStory = functions.https.onCall(
       throw new functions.https.HttpsError("not-found", "No memories found for this month.");
     }
 
-    // Fetch baby name
+    // Fetch baby info (name + nickname)
     const babyDoc = await db
       .collection("families")
       .doc(familyId)
       .collection("babies")
       .doc(babyId)
       .get();
-    const babyName: string = babyDoc.data()?.name?.split(" ")[0] ?? "Baby";
+    const babyData = babyDoc.data() ?? {};
+    const babyName: string =
+      (babyData.nickname as string) ||
+      (babyData.name as string)?.split(" ")[0] ||
+      "Baby";
 
-    // Build memory context
-    const memorySummaries = memoriesSnap.docs.map((doc) => {
+    // Build enriched memory summaries — caption + voice transcription
+    const memorySummaries: string[] = [];
+    for (const doc of memoriesSnap.docs) {
       const data = doc.data();
-      const caption = data.caption ?? "";
+      const caption: string = data.caption ?? "";
+      const voiceNoteUrl: string | undefined = data.voiceNoteUrl;
       const tags: string[] = data.tags ?? [];
-      const ts = data.takenAt as admin.firestore.Timestamp;
-      const date = ts.toDate().toISOString().substring(0, 10);
-      return `- ${date}: ${caption || "photo"} [tags: ${tags.join(", ") || "none"}]`;
-    });
+      const date: string = (data.takenAt as string).substring(0, 10);
+
+      let transcription = "";
+      if (voiceNoteUrl) {
+        transcription = await transcribeVoiceNote(voiceNoteUrl);
+      }
+
+      const noteParts: string[] = [];
+      if (caption) noteParts.push(caption);
+      if (transcription) noteParts.push(`[voice: "${transcription}"]`);
+      const noteText = noteParts.join(" ") || "photo";
+
+      memorySummaries.push(
+        `- ${date}: ${noteText} [tags: ${tags.join(", ") || "none"}]`
+      );
+    }
 
     const monthNames = [
       "", "January", "February", "March", "April", "May", "June",
@@ -68,7 +128,7 @@ export const generateMonthlyStory = functions.https.onCall(
     ];
     const monthName = monthNames[month];
 
-    // ── Gemini 2.0 Flash — generate story text ────────────────────────────
+    // ── Gemini 2.0 Flash — story text ────────────────────────────────────
     const vertexAI = new VertexAI({ project: projectId, location });
     const geminiModel = vertexAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
 
@@ -78,12 +138,13 @@ Baby's name: ${babyName}
 Month: ${monthName} ${year}
 Number of memories: ${memorySummaries.length}
 
-Memory summaries:
+Memory summaries (may include text notes and voice note transcriptions):
 ${memorySummaries.join("\n")}
 
 Write a beautiful, heartfelt 2-3 paragraph narrative story about ${babyName}'s month.
 Write in second person ("This month, you...").
 Be warm, specific, and capture the magic of this stage of life.
+Reference specific notes and voice recordings where meaningful.
 Start with a title on the first line, then a blank line, then the story.
 Do not use markdown formatting.`;
 
@@ -94,7 +155,7 @@ Do not use markdown formatting.`;
     const title = lines[0] ?? `${monthName} ${year}`;
     const content = lines.slice(1).join("\n\n").trim();
 
-    // ── Imagen 3 — generate watercolor illustration ────────────────────────
+    // ── Imagen 3 — watercolor illustration ───────────────────────────────
     const storyId = monthKey;
     let illustrationUrl: string | undefined;
 
@@ -153,11 +214,9 @@ Do not use markdown formatting.`;
         illustrationUrl = file.publicUrl();
       }
     } catch (imgErr) {
-      // Illustration is best-effort — story is still saved without it
       console.error("Imagen 3 generation failed:", imgErr);
     }
 
-    // Pick up to 4 memory photo thumbnails
     const photoUrls: string[] = memoriesSnap.docs
       .slice(0, 4)
       .map((d) => d.data().thumbnailUrl as string)

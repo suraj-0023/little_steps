@@ -23,7 +23,10 @@ class BabyRepository {
     required String familyId,
     required String uid,
     required String name,
-    required DateTime dob,
+    DateTime? dob,
+    String? nickname,
+    bool isUnborn = false,
+    DateTime? expectedDeliveryDate,
     File? coverPhoto,
   }) async {
     final babyId = _uuid.v4();
@@ -39,6 +42,9 @@ class BabyRepository {
       familyId: familyId,
       name: name,
       dob: dob,
+      nickname: nickname,
+      isUnborn: isUnborn,
+      expectedDeliveryDate: expectedDeliveryDate,
       createdAt: now,
       coverPhotoUrl: coverPhotoUrl,
     );
