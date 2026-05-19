@@ -41,6 +41,30 @@ class AppStrings {
   static const String copyLink = 'Copy link';
   static const String scanQr = 'Scan QR code';
 
+  // Growth journal
+  static const String growthJournal = 'Growth Journal';
+  static const String logGrowth = 'Log Growth';
+  static const String noGrowthData = 'No growth data yet';
+
+  // Letters
+  static const String lettersToFuture = 'Letters to the Future';
+  static const String writeALetter = 'Write a Letter';
+  static const String sealedLetter = 'Sealed Letter';
+
+  // Export
+  static const String exportAndShare = 'Export & Share';
+  static const String pdfCollage = 'PDF Collage';
+  static const String photoReel = 'Photo Reel';
+
+  // Settings
+  static const String settings = 'Settings';
+  static const String account = 'Account';
+  static const String memoryBook = 'Memory Book';
+
+  // Voice notes
+  static const String addVoiceNote = 'Add voice note';
+  static const String recordVoiceNote = 'Tap to record';
+
   // Errors
   static const String genericError = 'Something went wrong. Please try again.';
   static const String networkError = 'Check your internet connection and try again.';

@@ -13,6 +13,7 @@ class Memory {
     this.caption,
     this.location,
     this.exif,
+    this.voiceNoteUrl,
   });
 
   final String id;
@@ -26,6 +27,7 @@ class Memory {
   final String? caption;
   final String? location;
   final ExifData? exif;
+  final String? voiceNoteUrl;
 
   factory Memory.fromFirestore(Map<String, dynamic> data, String id) {
     return Memory(
@@ -42,6 +44,7 @@ class Memory {
       exif: data['exif'] != null
           ? ExifData.fromMap(Map<String, dynamic>.from(data['exif'] as Map))
           : null,
+      voiceNoteUrl: data['voiceNoteUrl'] as String?,
     );
   }
 
@@ -56,9 +59,15 @@ class Memory {
         if (caption != null) 'caption': caption,
         if (location != null) 'location': location,
         if (exif != null) 'exif': exif!.toMap(),
+        if (voiceNoteUrl != null) 'voiceNoteUrl': voiceNoteUrl,
       };
 
-  Memory copyWith({String? caption, List<String>? tags, String? location}) {
+  Memory copyWith({
+    String? caption,
+    List<String>? tags,
+    String? location,
+    String? voiceNoteUrl,
+  }) {
     return Memory(
       id: id,
       familyId: familyId,
@@ -71,6 +80,7 @@ class Memory {
       caption: caption ?? this.caption,
       location: location ?? this.location,
       exif: exif,
+      voiceNoteUrl: voiceNoteUrl ?? this.voiceNoteUrl,
     );
   }
 }
