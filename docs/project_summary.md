@@ -1,7 +1,7 @@
 # LittleSteps — Project Summary
 
 **Last Updated:** 2026-05-19  
-**Current Phase:** Phase 2 complete, Phase 3 ready (Phases 0–2 in production, Stories & Export up next, bug fixes applied)
+**Current Phase:** Phase 2 complete, Phase 3 in progress (Phases 0–2 in production, Growth journal + Letters started, Security hardening complete)
 
 ---
 
@@ -42,9 +42,9 @@ A multi-user Android baby memory app built in Flutter. Parents capture photos, t
 | On This Day notifications | 2 | ✅ Complete |
 | PDF collage export | 3 | Not started |
 | Video reel (FFmpegKit) | 3 | Not started |
-| Letters to the Future | 3 | Not started |
-| Growth journal + charts | 3 | Not started |
-| Voice notes | 3 | Not started |
+| Letters to the Future | 3 | In progress |
+| Growth journal + charts | 3 | ✅ Complete |
+| Voice notes | 3 | ✅ Complete |
 | Performance audit | 4 | Not started |
 | Onboarding flow | 4 | ✅ Complete |
 | Multi-baby support | 4 | Not started |

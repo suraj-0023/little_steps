@@ -5,6 +5,27 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-19 — Security Hardening + Growth Screen + App Polish
+
+**What:** Tightened Firebase Storage security rules, hardened .gitignore against credential leaks, completed growth screen with charts, added core services, and polished Android splash/icon assets.
+
+**Why:** Security audit revealed Storage rules allowed any authenticated user to access any family's files. Also committing accumulated feature work: growth journal UI, offline support services, letters feature repositories, voice note widgets, and onboarding screens.
+
+**Impact:** Baby photos and memories are now protected by family-membership checks (matching Firestore rules). Growth screen shows fl_chart curves for height/weight. App icon and splash updated. Offline queue, connectivity monitoring, and analytics services added.
+
+**Technical Detail:**
+- `storage.rules`: `isFamilyMember()` cross-references Firestore members array; size limits 20MB/10MB; deny-all fallback
+- `little_steps/.gitignore`: blocks google-services.json, GoogleService-Info.plist, key.properties, keystores, .env files
+- `lib/features/growth/screens/growth_screen.dart`: full rewrite with fl_chart growth curves
+- `lib/features/growth/models/`, `providers/`, `widgets/`: growth journal data layer
+- `lib/core/services/`: analytics, connectivity, home widget, offline queue services
+- `lib/features/letters/`: providers and repositories for Letters to the Future feature
+- `lib/features/memory/widgets/`: voice_note_player and voice_note_recorder widgets
+- `lib/features/onboarding/screens/`: onboarding flow screens
+- Android assets: updated launcher icons (all densities), splash backgrounds, mipmap-anydpi-v26 adaptive icon
+
+---
+
 ## 2026-05-19 — AI Provider Migration: Gemini 2.0 Flash + Imagen 3
 
 **What:** Replaced Anthropic Claude Haiku with Google Gemini 2.0 Flash for story text and Imagen 3 for story illustration generation.
