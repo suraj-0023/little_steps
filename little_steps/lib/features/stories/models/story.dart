@@ -9,6 +9,7 @@ class Story {
     required this.generatedAt,
     this.photoUrls = const [],
     this.memoryCount = 0,
+    this.illustrationUrl,
   });
 
   final String id;
@@ -20,6 +21,7 @@ class Story {
   final DateTime generatedAt;
   final List<String> photoUrls;
   final int memoryCount;
+  final String? illustrationUrl; // Imagen 3 generated watercolor illustration
 
   factory Story.fromFirestore(Map<String, dynamic> data, String id) {
     return Story(
@@ -32,6 +34,7 @@ class Story {
       generatedAt: DateTime.parse(data['generatedAt'] as String),
       photoUrls: List<String>.from(data['photoUrls'] as List? ?? []),
       memoryCount: data['memoryCount'] as int? ?? 0,
+      illustrationUrl: data['illustrationUrl'] as String?,
     );
   }
 
@@ -44,5 +47,6 @@ class Story {
         'generatedAt': generatedAt.toIso8601String(),
         'photoUrls': photoUrls,
         'memoryCount': memoryCount,
+        if (illustrationUrl != null) 'illustrationUrl': illustrationUrl,
       };
 }

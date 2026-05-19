@@ -5,6 +5,23 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-19 — AI Provider Migration: Gemini 2.0 Flash + Imagen 3
+
+**What:** Replaced Anthropic Claude Haiku with Google Gemini 2.0 Flash for story text and Imagen 3 for story illustration generation.
+
+**Why:** User preference — consolidate AI on Google's ecosystem (Gemini + Imagen 3 via Vertex AI), removing the need for an Anthropic API key.
+
+**Impact:** Monthly stories now also generate a watercolor-style illustration using Imagen 3. The illustration appears as a hero image on the story detail screen and as a card banner on the stories list. No API key management required — Vertex AI auth is automatic via Firebase service account.
+
+**Technical Detail:**
+- `functions/src/story_generator.ts`: Gemini via `@google-cloud/vertexai` SDK; Imagen 3 via Vertex AI REST endpoint with `google-auth-library` ADC
+- `story.dart`: Added `illustrationUrl` field
+- `story_detail_screen.dart`: `_IllustrationHero` widget at top of screen
+- `stories_screen.dart`: `_StoryCard` shows 140px illustration banner
+- `CLAUDE.md` + `docs/MANUAL_STEPS.md`: Updated setup instructions (enable Vertex AI API, no key needed)
+
+---
+
 ## 2026-05-18 — Bug Fix Batch: Session 2 Remaining Fixes
 
 **What:** Fixed 7 remaining bugs identified by code review agents: sign-out navigation, Firestore rules stories write permission, Cloud Function Timestamp type mismatch, story repository null check, memory voice note cleanup, collage concurrent upload guard, and onboarding redirect synchronization.

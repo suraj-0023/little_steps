@@ -193,26 +193,55 @@ class _StoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        title: Text(_monthLabel, style: AppTextStyles.title),
-        subtitle: Column(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 4),
-            Text(
-              story.content.length > 120
-                  ? '${story.content.substring(0, 120)}…'
-                  : story.content,
-              style: AppTextStyles.bodySecondary,
+            // Imagen 3 illustration banner — shown when available
+            if (story.illustrationUrl != null)
+              SizedBox(
+                width: double.infinity,
+                height: 140,
+                child: Image.network(
+                  story.illustrationUrl!,
+                  fit: BoxFit.cover,
+                  errorBuilder: (ctx, err, stack) => Container(
+                    color: AppColors.primary.withValues(alpha: 0.08),
+                    child: const Icon(Icons.image_outlined,
+                        color: AppColors.textSecondary),
+                  ),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                          child: Text(_monthLabel, style: AppTextStyles.title)),
+                      const Icon(Icons.chevron_right,
+                          color: AppColors.textSecondary),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    story.content.length > 120
+                        ? '${story.content.substring(0, 120)}…'
+                        : story.content,
+                    style: AppTextStyles.bodySecondary,
+                  ),
+                  const SizedBox(height: 8),
+                  Text('${story.memoryCount} memories',
+                      style: AppTextStyles.caption),
+                ],
+              ),
             ),
-            const SizedBox(height: 8),
-            Text('${story.memoryCount} memories',
-                style: AppTextStyles.caption),
           ],
         ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
       ),
     );
   }

@@ -1,6 +1,6 @@
 # LittleSteps — Project Summary
 
-**Last Updated:** 2026-05-18  
+**Last Updated:** 2026-05-19  
 **Current Phase:** Phase 2 complete, Phase 3 ready (Phases 0–2 in production, Stories & Export up next, bug fixes applied)
 
 ---
@@ -20,7 +20,7 @@ A multi-user Android baby memory app built in Flutter. Parents capture photos, t
 | Mobile | Flutter 3.x, Dart, Riverpod 2.x, GoRouter |
 | Backend | Firebase (Auth, Firestore, Storage, Functions, FCM) |
 | On-device ML | Google ML Kit, OpenCV, FFmpegKit |
-| Cloud AI | Claude API Haiku (via Cloud Functions) |
+| Cloud AI | Gemini 2.0 Flash + Imagen 3 (via Vertex AI) |
 | Local cache | Hive / Isar |
 
 ---

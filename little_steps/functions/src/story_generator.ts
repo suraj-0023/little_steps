@@ -1,8 +1,10 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
-import Anthropic from "@anthropic-ai/sdk";
+import { VertexAI } from "@google-cloud/vertexai";
+import { GoogleAuth } from "google-auth-library";
 
 const db = admin.firestore();
+const storage = admin.storage();
 
 export const generateMonthlyStory = functions.https.onCall(
   async (request) => {
@@ -20,7 +22,10 @@ export const generateMonthlyStory = functions.https.onCall(
       throw new functions.https.HttpsError("invalid-argument", "Missing required fields.");
     }
 
-    // Fetch memories for the month
+    const projectId = process.env.GCLOUD_PROJECT!;
+    const location = "us-central1";
+
+    // Fetch memories for the month using Firestore Timestamps
     const [year, month] = monthKey.split("-").map(Number);
     const startDate = admin.firestore.Timestamp.fromDate(new Date(year, month - 1, 1));
     const endDate = admin.firestore.Timestamp.fromDate(new Date(year, month, 0, 23, 59, 59));
@@ -35,10 +40,7 @@ export const generateMonthlyStory = functions.https.onCall(
       .get();
 
     if (memoriesSnap.empty) {
-      throw new functions.https.HttpsError(
-        "not-found",
-        "No memories found for this month."
-      );
+      throw new functions.https.HttpsError("not-found", "No memories found for this month.");
     }
 
     // Fetch baby name
@@ -55,7 +57,8 @@ export const generateMonthlyStory = functions.https.onCall(
       const data = doc.data();
       const caption = data.caption ?? "";
       const tags: string[] = data.tags ?? [];
-      const date = data.takenAt?.substring(0, 10) ?? "";
+      const ts = data.takenAt as admin.firestore.Timestamp;
+      const date = ts.toDate().toISOString().substring(0, 10);
       return `- ${date}: ${caption || "photo"} [tags: ${tags.join(", ") || "none"}]`;
     });
 
@@ -65,7 +68,11 @@ export const generateMonthlyStory = functions.https.onCall(
     ];
     const monthName = monthNames[month];
 
-    const prompt = `You are writing a warm, personal monthly memory story for a baby's digital memory book.
+    // ── Gemini 2.0 Flash — generate story text ────────────────────────────
+    const vertexAI = new VertexAI({ project: projectId, location });
+    const geminiModel = vertexAI.getGenerativeModel({ model: "gemini-2.0-flash-001" });
+
+    const storyPrompt = `You are writing a warm, personal monthly memory story for a baby's digital memory book.
 
 Baby's name: ${babyName}
 Month: ${monthName} ${year}
@@ -80,34 +87,82 @@ Be warm, specific, and capture the magic of this stage of life.
 Start with a title on the first line, then a blank line, then the story.
 Do not use markdown formatting.`;
 
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    if (!apiKey) {
-      throw new functions.https.HttpsError(
-        "failed-precondition",
-        "ANTHROPIC_API_KEY not configured."
-      );
-    }
-
-    const anthropic = new Anthropic({ apiKey });
-    const message = await anthropic.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 600,
-      messages: [{ role: "user", content: prompt }],
-    });
-
+    const geminiResult = await geminiModel.generateContent(storyPrompt);
     const fullText =
-      message.content[0].type === "text" ? message.content[0].text : "";
+      geminiResult.response.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     const lines = fullText.split("\n").filter((l) => l.trim());
     const title = lines[0] ?? `${monthName} ${year}`;
     const content = lines.slice(1).join("\n\n").trim();
 
-    // Pick up to 4 photo URLs from memories
+    // ── Imagen 3 — generate watercolor illustration ────────────────────────
+    const storyId = monthKey;
+    let illustrationUrl: string | undefined;
+
+    try {
+      const themeSnippet = memorySummaries
+        .slice(0, 3)
+        .map((s) => s.replace(/^- \d{4}-\d{2}-\d{2}: /, ""))
+        .join("; ");
+
+      const imagePrompt =
+        `Watercolor illustration for a baby memory book. ` +
+        `${monthName} ${year}. Baby named ${babyName}. ` +
+        `Warm, cozy, soft pastel colours. Themes: ${themeSnippet}. ` +
+        `Children's book style. No text or letters in the image.`;
+
+      const auth = new GoogleAuth({
+        scopes: ["https://www.googleapis.com/auth/cloud-platform"],
+      });
+      const authClient = await auth.getClient();
+      const accessToken = await authClient.getAccessToken();
+
+      const imagenRes = await fetch(
+        `https://${location}-aiplatform.googleapis.com/v1/projects/${projectId}` +
+          `/locations/${location}/publishers/google/models/imagen-3.0-generate-001:predict`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken.token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            instances: [{ prompt: imagePrompt }],
+            parameters: {
+              sampleCount: 1,
+              aspectRatio: "16:9",
+              safetyFilterLevel: "block_few",
+            },
+          }),
+        }
+      );
+
+      const imagenData = await imagenRes.json() as {
+        predictions?: Array<{ bytesBase64Encoded: string }>;
+      };
+      const base64Image = imagenData.predictions?.[0]?.bytesBase64Encoded;
+
+      if (base64Image) {
+        const bucket = storage.bucket();
+        const filePath = `families/${familyId}/stories/${storyId}/illustration.jpg`;
+        const file = bucket.file(filePath);
+        await file.save(Buffer.from(base64Image, "base64"), {
+          contentType: "image/jpeg",
+          metadata: { cacheControl: "public, max-age=31536000" },
+        });
+        await file.makePublic();
+        illustrationUrl = file.publicUrl();
+      }
+    } catch (imgErr) {
+      // Illustration is best-effort — story is still saved without it
+      console.error("Imagen 3 generation failed:", imgErr);
+    }
+
+    // Pick up to 4 memory photo thumbnails
     const photoUrls: string[] = memoriesSnap.docs
       .slice(0, 4)
       .map((d) => d.data().thumbnailUrl as string)
       .filter(Boolean);
 
-    const storyId = monthKey;
     await db
       .collection("families")
       .doc(familyId)
@@ -122,6 +177,7 @@ Do not use markdown formatting.`;
         generatedAt: new Date().toISOString(),
         photoUrls,
         memoryCount: memoriesSnap.size,
+        ...(illustrationUrl ? { illustrationUrl } : {}),
       });
 
     return { storyId };

@@ -202,10 +202,11 @@ The project is split into feature folders. Before reading or editing any file, i
 
 ## AI Integration Notes
 
-| Feature | Service | Called from | Key |
+| Feature | Service | Called from | Auth |
 |---|---|---|---|
 | Image tagging | ML Kit | On-device (Flutter) | N/A |
-| Monthly story | Claude API Haiku | Cloud Function `story-generator.ts` | `ANTHROPIC_API_KEY` in Functions env config |
-| Milestone suggestions | Claude API Haiku | Cloud Function | same key |
+| Monthly story (text) | Gemini 2.0 Flash | Cloud Function `story-generator.ts` | Vertex AI — service account ADC (automatic on Firebase) |
+| Story illustration | Imagen 3 | Cloud Function `story-generator.ts` | Vertex AI — service account ADC (automatic on Firebase) |
+| Milestone suggestions | Gemini 2.0 Flash | Cloud Function | Vertex AI — service account ADC |
 
-The `ANTHROPIC_API_KEY` is stored only in Firebase Functions environment config (`firebase functions:config:set`). It is never embedded in the Flutter app or committed to the repo.
+**No API keys are stored in env config.** Cloud Functions running on Firebase automatically authenticate to Vertex AI via the project's service account (Application Default Credentials). You only need to **enable the Vertex AI API** in Google Cloud Console — no key generation required.
