@@ -47,6 +47,7 @@ class _RoleChip extends StatelessWidget {
       UserRole.editor => ('Editor', Colors.green.shade600),
       UserRole.contributor => ('Contributor', Colors.orange.shade600),
       UserRole.viewer => ('Viewer', AppColors.textSecondary),
+      UserRole.child => ('Child', Colors.pink.shade400),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),

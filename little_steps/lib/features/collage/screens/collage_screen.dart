@@ -52,15 +52,6 @@ class CollageScreen extends ConsumerWidget {
           baby != null ? "${baby.displayName}'s Memory Book" : AppStrings.appName,
           style: AppTextStyles.title,
         ),
-        actions: [
-          Semantics(
-            label: 'Settings',
-            child: IconButton(
-              icon: const Icon(Icons.settings_outlined),
-              onPressed: () => context.push('/settings'),
-            ),
-          ),
-        ],
       ),
       body: memoriesAsync.when(
         loading: () => _ShimmerGrid(),

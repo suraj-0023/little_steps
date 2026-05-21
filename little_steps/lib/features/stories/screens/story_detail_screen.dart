@@ -23,7 +23,8 @@ class StoryDetailScreen extends ConsumerWidget {
     }
 
     final parts = story.monthKey.split('-');
-    final monthLabel = '${_months[int.parse(parts[1])]} ${parts[0]}';
+    final monthIndex = int.tryParse(parts[1]) ?? 1;
+    final monthLabel = '${_months[monthIndex.clamp(1, 12)]} ${parts[0]}';
 
     return Scaffold(
       appBar: AppBar(

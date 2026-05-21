@@ -55,14 +55,19 @@ class _ReelScreenState extends ConsumerState<ReelScreen>
 
   void _startAutoPlay() {
     _autoPlayTimer?.cancel();
+    if (!mounted) return;
     _autoPlayTimer = Timer(_holdDuration, () {
       if (!mounted || !_playing) return;
-      final memories = ref.read(memoriesProvider).valueOrNull ?? [];
-      if (memories.isEmpty) return;
-      final next = (_currentIndex + 1) % memories.length;
-      _controller.animateToPage(next,
-          duration: _slideDuration, curve: Curves.easeInOut);
-      _startAutoPlay();
+      try {
+        final memories = ref.read(memoriesProvider).valueOrNull ?? [];
+        if (memories.isEmpty) return;
+        final next = (_currentIndex + 1) % memories.length;
+        _controller.animateToPage(next,
+            duration: _slideDuration, curve: Curves.easeInOut);
+        _startAutoPlay();
+      } catch (_) {
+        // Widget unmounted or provider error
+      }
     });
   }
 

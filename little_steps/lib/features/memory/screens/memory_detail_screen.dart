@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+import 'dart:async';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +27,7 @@ class _MemoryDetailScreenState extends ConsumerState<MemoryDetailScreen> {
   bool _showRecorder = false;
   bool _uploadingVoice = false;
   bool _captionInitialized = false;
+  Timer? _saveTimer;
 
   @override
   void initState() {
@@ -34,8 +37,20 @@ class _MemoryDetailScreenState extends ConsumerState<MemoryDetailScreen> {
 
   @override
   void dispose() {
+    _saveTimer?.cancel();
     _captionController.dispose();
     super.dispose();
+  }
+
+  void _scheduleSave(String val, String familyId, String memoryId) {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(const Duration(milliseconds: 1200), () async {
+      try {
+        await ref.read(memoryRepositoryProvider).updateCaption(familyId, memoryId, val);
+      } catch (e) {
+        AppLogger.e('Failed to save caption', e);
+      }
+    });
   }
 
   @override
@@ -114,36 +129,50 @@ class _MemoryDetailScreenState extends ConsumerState<MemoryDetailScreen> {
                         size: 18, color: AppColors.textSecondary),
                     const SizedBox(width: 6),
                     Text('Text note', style: AppTextStyles.label),
+                    const Spacer(),
+                    if (_editingCaption)
+                      TextButton(
+                        onPressed: () => setState(() => _editingCaption = false),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text('Done', style: TextStyle(fontSize: 12)),
+                      )
+                    else
+                      GestureDetector(
+                        onTap: () => setState(() => _editingCaption = true),
+                        child: const Icon(Icons.edit_outlined,
+                            size: 16, color: AppColors.primary),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                GestureDetector(
-                  onTap: () => setState(() => _editingCaption = true),
-                  child: _editingCaption
-                      ? TextField(
-                          controller: _captionController,
-                          autofocus: true,
-                          style: AppTextStyles.body,
-                          maxLines: null,
-                          decoration: InputDecoration(
-                            hintText: 'Write a note about this memory…',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                  color: AppColors.primary),
-                            ),
-                            contentPadding: const EdgeInsets.all(10),
+                _editingCaption
+                    ? TextField(
+                        controller: _captionController,
+                        autofocus: true,
+                        style: AppTextStyles.body,
+                        maxLines: null,
+                        decoration: InputDecoration(
+                          hintText: 'Write a note about this memory…',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide:
+                                const BorderSide(color: AppColors.primary),
                           ),
-                          onSubmitted: (val) {
-                            setState(() => _editingCaption = false);
-                            if (user?.familyId != null) {
-                              ref.read(memoryRepositoryProvider)
-                                  .updateCaption(
-                                      user!.familyId!, memory.id, val);
-                            }
-                          },
-                        )
-                      : Container(
+                          contentPadding: const EdgeInsets.all(10),
+                        ),
+                        onChanged: (val) {
+                          if (user?.familyId != null) {
+                            _scheduleSave(val, user!.familyId!, memory.id);
+                          }
+                        },
+                      )
+                    : GestureDetector(
+                        onTap: () => setState(() => _editingCaption = true),
+                        child: Container(
                           width: double.infinity,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 8),
@@ -161,7 +190,7 @@ class _MemoryDetailScreenState extends ConsumerState<MemoryDetailScreen> {
                                 : AppTextStyles.bodySecondary,
                           ),
                         ),
-                ),
+                      ),
                 const SizedBox(height: 12),
                 const Divider(),
                 const SizedBox(height: 8),
@@ -214,6 +243,7 @@ class _MemoryDetailScreenState extends ConsumerState<MemoryDetailScreen> {
   }
 
   Future<void> _uploadVoiceNote(File file, String familyId, String memoryId) async {
+    if (!mounted) return;
     setState(() {
       _showRecorder = false;
       _uploadingVoice = true;
@@ -253,10 +283,25 @@ class _MemoryDetailScreenState extends ConsumerState<MemoryDetailScreen> {
         ],
       ),
     );
-    if (confirmed == true) {
-      await ref
-          .read(memoryRepositoryProvider)
-          .deleteMemory(familyId, widget.memoryId);
+    if (confirmed == true && mounted) {
+      try {
+        await ref
+            .read(memoryRepositoryProvider)
+            .deleteMemory(familyId, widget.memoryId);
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        AppLogger.e('Failed to delete memory', e);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text(AppStrings.genericError),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      }
     }
   }
 }

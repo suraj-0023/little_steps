@@ -43,6 +43,15 @@ class _InviteScreenState extends ConsumerState<InviteScreen> {
             role: _selectedRole,
           );
       if (mounted) setState(() => _code = code);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to generate invite code'),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _generating = false);
     }

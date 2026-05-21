@@ -20,9 +20,9 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   onboardingDoneSync = prefs.getBool('onboarding_done') ?? false;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  // App Check — Play Integrity for production
+  // App Check — debug provider (sideloaded APK, not Play Store)
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.playIntegrity,
+    androidProvider: AndroidProvider.debug,
   );
 
   // Crashlytics — production only

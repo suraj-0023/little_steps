@@ -10,6 +10,7 @@ class Baby {
     this.expectedDeliveryDate,
     this.coverPhotoUrl,
     this.useNicknameDisplay = false,
+    this.childCode,
   });
 
   final String id;
@@ -22,6 +23,7 @@ class Baby {
   final DateTime createdAt;
   final String? coverPhotoUrl;
   final bool useNicknameDisplay;
+  final String? childCode;
 
   String get firstName => name.split(' ').first;
 
@@ -47,6 +49,7 @@ class Baby {
       createdAt: DateTime.parse(data['createdAt'] as String),
       coverPhotoUrl: data['coverPhotoUrl'] as String?,
       useNicknameDisplay: data['useNicknameDisplay'] as bool? ?? false,
+      childCode: data['childCode'] as String?,
     );
   }
 
@@ -61,6 +64,7 @@ class Baby {
         'createdAt': createdAt.toIso8601String(),
         if (coverPhotoUrl != null) 'coverPhotoUrl': coverPhotoUrl,
         'useNicknameDisplay': useNicknameDisplay,
+        if (childCode != null) 'childCode': childCode,
       };
 
   Baby copyWith({
@@ -71,6 +75,7 @@ class Baby {
     DateTime? expectedDeliveryDate,
     String? coverPhotoUrl,
     bool? useNicknameDisplay,
+    String? childCode,
   }) {
     return Baby(
       id: id,
@@ -83,6 +88,7 @@ class Baby {
       createdAt: createdAt,
       coverPhotoUrl: coverPhotoUrl ?? this.coverPhotoUrl,
       useNicknameDisplay: useNicknameDisplay ?? this.useNicknameDisplay,
+      childCode: childCode ?? this.childCode,
     );
   }
 }

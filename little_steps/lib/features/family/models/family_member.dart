@@ -18,9 +18,9 @@ class FamilyMember {
   bool get hasPhoto => photoUrl.isNotEmpty;
 
   String get initials {
-    final parts = displayName.trim().split(' ');
+    final parts = displayName.trim().split(' ').where((p) => p.isNotEmpty).toList();
     if (parts.length >= 2) return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
-    if (displayName.isNotEmpty) return displayName[0].toUpperCase();
+    if (parts.isNotEmpty) return parts[0][0].toUpperCase();
     return '?';
   }
 

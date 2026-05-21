@@ -121,7 +121,8 @@ class _GenerateCard extends StatelessWidget {
       '', 'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
-    return '${months[int.parse(parts[1])]} ${parts[0]}';
+    final monthIndex = int.tryParse(parts[1]) ?? 1;
+    return '${months[monthIndex.clamp(1, 12)]} ${parts[0]}';
   }
 
   @override
@@ -193,7 +194,8 @@ class _StoryCard extends StatelessWidget {
       '', 'January', 'February', 'March', 'April', 'May', 'June',
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
-    return '${months[int.parse(parts[1])]} ${parts[0]}';
+    final monthIndex = int.tryParse(parts[1]) ?? 1;
+    return '${months[monthIndex.clamp(1, 12)]} ${parts[0]}';
   }
 
   @override

@@ -37,6 +37,7 @@ class BabyRepository {
     }
 
     final now = DateTime.now();
+    final childCode = _uuid.v4().replaceAll('-', '').substring(0, 12).toUpperCase();
     final baby = Baby(
       id: babyId,
       familyId: familyId,
@@ -47,6 +48,7 @@ class BabyRepository {
       expectedDeliveryDate: expectedDeliveryDate,
       createdAt: now,
       coverPhotoUrl: coverPhotoUrl,
+      childCode: childCode,
     );
 
     final batch = _firestore.batch();

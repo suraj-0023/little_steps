@@ -51,6 +51,7 @@ class _AddMilestoneScreenState extends ConsumerState<AddMilestoneScreen> {
     final baby = ref.read(currentBabyProvider).valueOrNull;
     if (user?.familyId == null || baby == null) return;
 
+    if (!mounted) return;
     setState(() => _saving = true);
     try {
       await ref.read(milestoneRepositoryProvider).addMilestone(

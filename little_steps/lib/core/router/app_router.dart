@@ -16,6 +16,9 @@ import '../../features/letters/screens/letters_screen.dart';
 import '../../features/letters/screens/write_letter_screen.dart';
 import '../../features/memory/screens/memory_detail_screen.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
+import '../../features/settings/screens/about_screen.dart';
+import '../../features/settings/screens/privacy_policy_screen.dart';
+import '../../features/settings/screens/rate_app_screen.dart';
 import '../../features/settings/screens/settings_screen.dart';
 import '../../features/stories/screens/stories_screen.dart';
 import '../../features/stories/screens/story_detail_screen.dart';
@@ -64,8 +67,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/join',
         builder: (context, state) => const JoinFamilyScreen(),
       ),
-      // All drawer-accessible screens live inside the shell so the
-      // hamburger + drawer is available on every one of them.
       ShellRoute(
         builder: (context, state, child) => AppShell(child: child),
         routes: [
@@ -80,7 +81,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/settings', builder: (context, state) => const SettingsScreen()),
         ],
       ),
-      // Detail / modal screens outside the shell (no drawer needed)
       GoRoute(
         path: '/memory/:memoryId',
         builder: (context, state) =>
@@ -107,6 +107,18 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/letters/:letterId',
         builder: (context, state) =>
             LetterDetailScreen(letterId: state.pathParameters['letterId']!),
+      ),
+      GoRoute(
+        path: '/settings/rate',
+        builder: (context, state) => const RateAppScreen(),
+      ),
+      GoRoute(
+        path: '/settings/privacy',
+        builder: (context, state) => const PrivacyPolicyScreen(),
+      ),
+      GoRoute(
+        path: '/settings/about',
+        builder: (context, state) => const AboutScreen(),
       ),
     ],
   );

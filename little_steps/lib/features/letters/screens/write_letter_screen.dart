@@ -230,7 +230,7 @@ class _WriteLetterScreenState extends ConsumerState<WriteLetterScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: _unlockAt,
-      firstDate: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day + 1),
+      firstDate: DateTime.now().add(const Duration(days: 1)),
       lastDate: DateTime(2100),
     );
     if (picked != null) setState(() => _unlockAt = picked);

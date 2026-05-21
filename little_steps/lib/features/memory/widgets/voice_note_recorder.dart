@@ -65,13 +65,17 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder> {
       return;
     }
 
+    if (!mounted) return;
+
     setState(() {
       _isRecording = true;
       _secondsElapsed = 0;
     });
 
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() => _secondsElapsed++);
+      if (mounted) {
+        setState(() => _secondsElapsed++);
+      }
     });
   }
 
@@ -80,10 +84,14 @@ class _VoiceNoteRecorderState extends State<VoiceNoteRecorder> {
     try {
       await _recorder.stop();
     } catch (e) {
-      setState(() => _isRecording = false);
+      if (mounted) {
+        setState(() => _isRecording = false);
+      }
       return;
     }
-    setState(() => _isRecording = false);
+    if (mounted) {
+      setState(() => _isRecording = false);
+    }
     if (_outputPath != null) {
       widget.onRecorded(File(_outputPath!));
     }

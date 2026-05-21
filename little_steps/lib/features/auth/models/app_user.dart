@@ -1,4 +1,4 @@
-enum UserRole { admin, editor, contributor, viewer }
+enum UserRole { admin, editor, contributor, viewer, child }
 
 class AppUser {
   const AppUser({

@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/constants/app_strings.dart';
@@ -112,17 +111,17 @@ class SettingsScreen extends ConsumerWidget {
           _NavTile(
             icon: Icons.star_outline,
             title: 'Rate LittleSteps',
-            onTap: () {/* TODO: Play Store link */},
+            onTap: () => context.push('/settings/rate'),
           ),
           _NavTile(
             icon: Icons.privacy_tip_outlined,
             title: 'Privacy Policy',
-            onTap: () {/* TODO: open URL */},
+            onTap: () => context.push('/settings/privacy'),
           ),
           _NavTile(
             icon: Icons.info_outline,
             title: 'About',
-            onTap: () => _showAbout(context),
+            onTap: () => context.push('/settings/about'),
           ),
           const Divider(indent: 16, endIndent: 16),
 
@@ -145,25 +144,6 @@ class SettingsScreen extends ConsumerWidget {
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
     return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
-  }
-
-  Future<void> _showAbout(BuildContext context) async {
-    PackageInfo? info;
-    try {
-      info = await PackageInfo.fromPlatform();
-    } catch (_) {}
-    if (!context.mounted) return;
-    showAboutDialog(
-      context: context,
-      applicationName: AppStrings.appName,
-      applicationVersion:
-          info != null ? 'v${info.version}+${info.buildNumber}' : '1.0.0',
-      applicationIcon: const FlutterLogo(size: 48),
-      children: [
-        const Text(
-            'A beautiful baby memory book with AI-powered monthly stories.'),
-      ],
-    );
   }
 
   Future<void> _confirmSignOut(BuildContext context, WidgetRef ref) async {

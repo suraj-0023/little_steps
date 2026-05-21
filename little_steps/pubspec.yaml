@@ -99,6 +99,8 @@ dev_dependencies:
 flutter_native_splash:
   color: "#6C3FC5"
   color_dark: "#6C3FC5"
+  image: assets/images/app_icon.png
+  android_gravity: center
   android_12:
     image: assets/images/app_icon.png
     color: "#6C3FC5"

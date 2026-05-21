@@ -4,3 +4,10 @@ little_steps/.dart_tool/
 little_steps/build/
 little_steps/.flutter-plugins
 little_steps/.flutter-plugins-dependencies
+
+# Cloud Functions build artifacts & dependencies
+little_steps/functions/node_modules/
+little_steps/functions/lib/
+
+# Local IDE configuration
+.vscode/

@@ -65,4 +65,25 @@ class NotificationService {
   }
 
   static Future<String?> getToken() => _messaging.getToken();
+
+  static Future<void> showPdfReady(String label) async {
+    try {
+      await _local.show(
+        label.hashCode,
+        'PDF Ready 📄',
+        'Your $label memory album is ready to share.',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            _channelId,
+            _channelName,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+        ),
+      );
+    } catch (e) {
+      AppLogger.e('Failed to show PDF ready notification', e);
+    }
+  }
 }

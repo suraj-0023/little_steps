@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,10 +52,30 @@ class TimelineScreen extends ConsumerWidget {
                       MilestoneCard(
                         milestone: item.milestone!,
                         onDelete: user?.familyId != null
-                            ? () => ref
-                                .read(milestoneRepositoryProvider)
-                                .deleteMilestone(
-                                    user!.familyId!, item.milestone!.id)
+                            ? () async {
+                                try {
+                                  await ref
+                                      .read(milestoneRepositoryProvider)
+                                      .deleteMilestone(
+                                          user!.familyId!, item.milestone!.id);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content: Text('Milestone deleted')),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text(
+                                            'Failed to delete milestone'),
+                                        backgroundColor: AppColors.error,
+                                      ),
+                                    );
+                                  }
+                                }
+                              }
                             : null,
                       )
                     else if (item.memory != null)

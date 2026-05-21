@@ -72,7 +72,10 @@ class _InfoCardState extends State<_InfoCard> {
           color: AppColors.primary.withValues(alpha: 0.2),
         ),
       ),
-      child: Padding(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => setState(() => _expanded = !_expanded),
+        child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,14 +92,9 @@ class _InfoCardState extends State<_InfoCard> {
                         .copyWith(color: AppColors.primary),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => setState(() => _expanded = !_expanded),
-                  child: Icon(
-                    _expanded
-                        ? Icons.expand_less
-                        : Icons.expand_more,
-                    color: AppColors.primary,
-                  ),
+                Icon(
+                  _expanded ? Icons.expand_less : Icons.expand_more,
+                  color: AppColors.primary,
                 ),
               ],
             ),
@@ -128,6 +126,7 @@ class _InfoCardState extends State<_InfoCard> {
               ),
             ],
           ],
+        ),
         ),
       ),
     );
