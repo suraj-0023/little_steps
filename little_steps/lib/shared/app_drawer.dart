@@ -18,7 +18,7 @@ class AppDrawer extends ConsumerWidget {
 
   static const _featureItems = [
     (icon: Icons.mail_outline, activeIcon: Icons.mail, label: 'Letters to Future', path: '/letters'),
-    (icon: Icons.picture_as_pdf_outlined, activeIcon: Icons.picture_as_pdf, label: 'Export & Share', path: '/export'),
+    (icon: Icons.picture_as_pdf_outlined, activeIcon: Icons.picture_as_pdf, label: 'Memory Albums', path: '/export'),
     (icon: Icons.play_circle_outline, activeIcon: Icons.play_circle, label: 'Photo Reel', path: '/reel'),
   ];
 
@@ -120,17 +120,32 @@ class AppDrawer extends ConsumerWidget {
                         EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Divider(),
                   ),
-                  ..._featureItems.map((item) => _DrawerTile(
-                        icon: Icon(item.icon),
-                        selectedIcon: Icon(item.activeIcon),
-                        label: item.label,
-                        selected: location == item.path ||
-                            location.startsWith(item.path),
-                        onTap: () {
+                  ..._featureItems.map((item) {
+                    final comingSoon = item.path == '/export' || item.path == '/reel';
+                    return _DrawerTile(
+                      icon: Icon(item.icon),
+                      selectedIcon: Icon(item.activeIcon),
+                      label: item.label,
+                      selected: !comingSoon &&
+                          (location == item.path ||
+                              location.startsWith(item.path)),
+                      comingSoon: comingSoon,
+                      onTap: () {
+                        if (comingSoon) {
+                          Navigator.of(context).pop();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('${item.label} is coming soon!'),
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        } else {
                           Navigator.of(context).pop();
                           context.go(item.path);
-                        },
-                      )),
+                        }
+                      },
+                    );
+                  }),
                   const Padding(
                     padding:
                         EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -164,28 +179,60 @@ class _DrawerTile extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.comingSoon = false,
   });
   final Widget icon;
   final Widget selectedIcon;
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final bool comingSoon;
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
       leading: IconTheme(
         data: IconThemeData(
-          color: selected ? AppColors.primary : AppColors.textSecondary,
+          color: comingSoon
+              ? AppColors.textSecondary.withValues(alpha: 0.4)
+              : selected
+                  ? AppColors.primary
+                  : AppColors.textSecondary,
         ),
         child: selected ? selectedIcon : icon,
       ),
-      title: Text(
-        label,
-        style: AppTextStyles.body.copyWith(
-          color: selected ? AppColors.primary : null,
-          fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
-        ),
+      title: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: AppTextStyles.body.copyWith(
+                color: comingSoon
+                    ? AppColors.textSecondary.withValues(alpha: 0.5)
+                    : selected
+                        ? AppColors.primary
+                        : null,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+              ),
+            ),
+          ),
+          if (comingSoon)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                'Soon',
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 10,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
       ),
       selected: selected,
       selectedTileColor: AppColors.primary.withValues(alpha: 0.08),
