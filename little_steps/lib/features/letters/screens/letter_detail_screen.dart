@@ -70,10 +70,10 @@ class LetterDetailScreen extends ConsumerWidget {
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFFFDF8F0),
+          backgroundColor: AppColors.surface,
           appBar: AppBar(
-            backgroundColor: const Color(0xFFFDF8F0),
-            elevation: 0,
+            backgroundColor: AppColors.surface,
+            centerTitle: true,
             title: const Text('Letter'),
           ),
           body: SingleChildScrollView(

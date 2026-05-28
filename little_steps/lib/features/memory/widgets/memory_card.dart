@@ -18,22 +18,52 @@ class MemoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Stack(
-          children: [
-            CachedNetworkImage(
-              imageUrl: memory.thumbnailUrl,
-              fit: BoxFit.cover,
-              width: double.infinity,
-              placeholder: (context, url) => Container(color: AppColors.shimmerBase),
-              errorWidget: (context, url, error) => Container(
-                color: AppColors.divider,
-                child: const Icon(Icons.broken_image_outlined,
-                    color: AppColors.textSecondary),
-              ),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+            width: 0.8,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.textPrimary.withValues(alpha: 0.03),
+              blurRadius: 16,
+              spreadRadius: 1,
+              offset: const Offset(0, 4),
             ),
-            if (memory.caption?.isNotEmpty == true)
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(19.2),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CachedNetworkImage(
+                imageUrl: memory.thumbnailUrl,
+                fit: BoxFit.cover,
+                placeholder: (context, url) => Container(
+                  color: AppColors.shimmerBase,
+                  child: const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 1.5,
+                        color: AppColors.primaryDark,
+                      ),
+                    ),
+                  ),
+                ),
+                errorWidget: (context, url, error) => Container(
+                  color: AppColors.surface,
+                  child: const Icon(
+                    Icons.broken_image_outlined,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
               Positioned(
                 left: 0,
                 right: 0,
@@ -45,22 +75,32 @@ class MemoryCard extends StatelessWidget {
                       end: Alignment.bottomCenter,
                       colors: [
                         Colors.transparent,
-                        Colors.black.withValues(alpha: 0.55),
+                        AppColors.textPrimary.withValues(alpha: 0.65),
                       ],
                     ),
                   ),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                  child: Text(
-                    memory.caption!,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.caption
-                        .copyWith(color: Colors.white),
+                  padding: const EdgeInsets.fromLTRB(12, 24, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (memory.caption?.isNotEmpty == true)
+                        Text(
+                          memory.caption!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.caption.copyWith(
+                            color: Colors.white,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

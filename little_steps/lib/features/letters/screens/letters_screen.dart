@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../shared/app_shell.dart';
+import '../../baby/providers/baby_providers.dart';
+import '../../baby/widgets/baby_switcher_sheet.dart';
 import '../models/letter.dart';
 import '../providers/letter_providers.dart';
 
@@ -15,13 +16,45 @@ class LettersScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final lettersAsync = ref.watch(lettersProvider);
+    final baby = ref.watch(currentBabyProvider).valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Letters to the Future'),
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: AppShell.openDrawer,
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 12.0),
+          child: Center(
+            child: GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
+                  builder: (_) => const BabySwitcherSheet(),
+                );
+              },
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                backgroundImage: baby?.coverPhotoUrl != null
+                    ? NetworkImage(baby!.coverPhotoUrl!)
+                    : null,
+                child: baby?.coverPhotoUrl == null
+                    ? Text(
+                        baby?.displayName.substring(0, 1).toUpperCase() ?? '?',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primaryDark,
+                        ),
+                      )
+                    : null,
+              ),
+            ),
+          ),
         ),
       ),
       body: lettersAsync.when(
@@ -31,7 +64,7 @@ class LettersScreen extends ConsumerWidget {
         data: (letters) => letters.isEmpty
             ? _EmptyState()
             : ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100), // Bottom padding for dock
                 itemCount: letters.length + 1, // +1 for the info card at top
                 itemBuilder: (_, i) {
                   if (i == 0) return const _InfoCard();
@@ -39,10 +72,15 @@ class LettersScreen extends ConsumerWidget {
                 },
               ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/letters/write'),
-        icon: const Icon(Icons.edit_outlined),
-        label: const Text('Write a Letter'),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 80), // Keep button clear of floating bottom bar
+        child: FloatingActionButton.extended(
+          onPressed: () => context.push('/letters/write'),
+          icon: const Icon(Icons.edit_outlined),
+          label: const Text('Write a Letter'),
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.textPrimary,
+        ),
       ),
     );
   }
@@ -225,31 +263,59 @@ class _LetterCard extends ConsumerWidget {
     final unlocked = now.isAfter(letter.unlockAt);
     final daysLeft = letter.unlockAt.difference(now).inDays;
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    final sealColor = unlocked ? AppColors.success : AppColors.primary;
+    final sealIcon = unlocked ? Icons.mark_email_read_outlined : Icons.lock_outline;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: unlocked ? 0.2 : 0.4),
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.textPrimary.withValues(alpha: 0.02),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         onTap: unlocked
             ? () => context.push('/letters/${letter.id}')
-            : null,
+            : () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'This letter is sealed until ${DateFormat('d MMM yyyy').format(letter.unlockAt)}',
+                    ),
+                    backgroundColor: AppColors.primaryDark,
+                  ),
+                );
+              },
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(18),
           child: Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 50,
+                height: 50,
                 decoration: BoxDecoration(
-                  color: unlocked
-                      ? AppColors.success.withValues(alpha: 0.15)
-                      : AppColors.primary.withValues(alpha: 0.1),
+                  color: sealColor.withValues(alpha: 0.08),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: sealColor.withValues(alpha: unlocked ? 0.2 : 0.3),
+                    width: 1.2,
+                  ),
                 ),
                 child: Icon(
-                  unlocked ? Icons.drafts : Icons.lock_outline,
-                  color: unlocked ? AppColors.success : AppColors.primary,
+                  sealIcon,
+                  color: sealColor,
+                  size: 20,
                 ),
               ),
               const SizedBox(width: 16),
@@ -260,32 +326,42 @@ class _LetterCard extends ConsumerWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(letter.title,
-                              style: AppTextStyles.title),
+                          child: Text(
+                            letter.title,
+                            style: AppTextStyles.title.copyWith(fontSize: 16),
+                          ),
                         ),
-                        // Public / private badge
+                        const SizedBox(width: 8),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 2),
+                              horizontal: 8, vertical: 2.5),
                           decoration: BoxDecoration(
                             color: letter.isPublic
-                                ? AppColors.success.withValues(alpha: 0.12)
-                                : AppColors.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
+                                ? AppColors.success.withValues(alpha: 0.08)
+                                : AppColors.primary.withValues(alpha: 0.06),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: letter.isPublic
+                                  ? AppColors.success.withValues(alpha: 0.25)
+                                  : AppColors.primary.withValues(alpha: 0.2),
+                              width: 0.6,
+                            ),
                           ),
                           child: Text(
                             letter.isPublic ? 'Public' : 'Private',
                             style: AppTextStyles.caption.copyWith(
                               color: letter.isPublic
                                   ? AppColors.success
-                                  : AppColors.primary,
+                                  : AppColors.primaryDark,
                               fontWeight: FontWeight.w600,
+                              fontSize: 9.5,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 6),
                     Text(
                       unlocked
                           ? 'Unlocked · ${DateFormat('d MMM yyyy').format(letter.unlockAt)}'
@@ -296,18 +372,28 @@ class _LetterCard extends ConsumerWidget {
                         color: unlocked
                             ? AppColors.success
                             : AppColors.textSecondary,
+                        fontWeight: unlocked ? FontWeight.w600 : FontWeight.normal,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       'Written ${DateFormat('d MMM yyyy').format(letter.createdAt)}',
-                      style: AppTextStyles.caption,
+                      style: AppTextStyles.caption.copyWith(
+                        fontSize: 10.5,
+                        color: AppColors.textSecondary.withValues(alpha: 0.7),
+                      ),
                     ),
                   ],
                 ),
               ),
-              if (unlocked)
-                const Icon(Icons.chevron_right,
-                    color: AppColors.textSecondary),
+              if (unlocked) ...[
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.chevron_right,
+                  color: AppColors.textSecondary,
+                  size: 20,
+                ),
+              ],
             ],
           ),
         ),

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
@@ -5,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 import '../../memory/models/memory.dart';
 
 enum PdfTemplate {
@@ -879,9 +881,13 @@ class ExportRepository {
 
   Future<File> _save(
       pw.Document pdf, String babyName, String monthLabel) async {
-    final dir = await getTemporaryDirectory();
+    final dir = await getApplicationDocumentsDirectory();
+    final exportDir = Directory('${dir.path}/exports');
+    if (!await exportDir.exists()) {
+      await exportDir.create(recursive: true);
+    }
     final file = File(
-        '${dir.path}/littlesteps_${monthLabel.replaceAll(' ', '_')}.pdf');
+        '${exportDir.path}/littlesteps_${monthLabel.replaceAll(' ', '_')}.pdf');
     await file.writeAsBytes(await pdf.save());
     return file;
   }
@@ -906,5 +912,39 @@ class ExportRepository {
       if (response.statusCode == 200) return response.bodyBytes;
     } catch (_) {}
     return null;
+  }
+
+  Future<File> saveHtmlPdf(
+      Uint8List pdfBytes, String babyName, String monthLabel) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final exportDir = Directory('${dir.path}/exports');
+    if (!await exportDir.exists()) {
+      await exportDir.create(recursive: true);
+    }
+    final cleanLabel = monthLabel.replaceAll(' ', '_').replaceAll('/', '_');
+    final file = File('${exportDir.path}/littlesteps_$cleanLabel.pdf');
+    await file.writeAsBytes(pdfBytes);
+    return file;
+  }
+
+  Future<File> compileHtmlToPdf({
+    required String htmlContent,
+    required List<Uint8List> compressedImageBytes,
+    required String babyName,
+    required String monthLabel,
+  }) async {
+    var finalHtml = htmlContent;
+    for (var i = 0; i < compressedImageBytes.length; i++) {
+      final base64Image = base64Encode(compressedImageBytes[i]);
+      final dataUri = 'data:image/jpeg;base64,$base64Image';
+      finalHtml = finalHtml.replaceAll('IMAGE_PLACEHOLDER_$i', dataUri);
+    }
+
+    final pdfBytes = await Printing.convertHtml(
+      html: finalHtml,
+      format: PdfPageFormat.a4,
+    );
+
+    return saveHtmlPdf(pdfBytes, babyName, monthLabel);
   }
 }

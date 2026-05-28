@@ -61,3 +61,6 @@ key.properties
 .env.*.local
 functions/.env*
 functions/.runtimeconfig.json
+
+# Secrets
+lib/core/constants/app_secrets.dart

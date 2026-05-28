@@ -37,10 +37,15 @@ service cloud.firestore {
         allow delete: if isFamilyMember(familyId);
       }
 
-      // Stories — any member can read; only Cloud Functions write (via Admin SDK)
+      // Stories — any member can read; family members can write
       match /stories/{storyId} {
         allow read: if isFamilyMember(familyId);
-        allow write: if false;
+        allow write: if isFamilyMember(familyId);
+      }
+
+      // Calendar events — any family member can read/write
+      match /calendar_events/{eventId} {
+        allow read, write: if isFamilyMember(familyId);
       }
 
       // Growth logs — any family member can read/write
@@ -59,6 +64,11 @@ service cloud.firestore {
 
       // Milestones
       match /milestones/{milestoneId} {
+        allow read, write: if isFamilyMember(familyId);
+      }
+
+      // Persons — detected people stored for story reuse
+      match /persons/{personId} {
         allow read, write: if isFamilyMember(familyId);
       }
 

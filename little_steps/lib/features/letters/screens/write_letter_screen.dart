@@ -245,9 +245,8 @@ class _DateChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ActionChip(
-      label: Text(label, style: AppTextStyles.caption),
+      label: Text(label),
       onPressed: onTap,
-      backgroundColor: AppColors.primary.withValues(alpha: 0.08),
     );
   }
 }

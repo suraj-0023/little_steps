@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../core/constants/app_strings.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../providers/onboarding_provider.dart';
 
@@ -16,32 +18,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   static const _pages = [
     _OnboardingPage(
-      emoji: '👣',
-      title: 'Every Little Step',
-      subtitle:
-          'Capture your baby\'s most precious moments — photos, milestones, and growth — all in one beautiful place.',
-      color: Color(0xFF6C3FC5),
+      imagePath: 'assets/images/onboarding_capture.png',
+      title: AppStrings.onboardingTitle1,
+      subtitle: AppStrings.onboardingSubtitle1,
     ),
     _OnboardingPage(
-      emoji: '📸',
-      title: 'Auto-Tagged Memories',
-      subtitle:
-          'Our on-device AI reads each photo and adds smart tags instantly — no internet needed.',
-      color: Color(0xFF4A90D9),
+      imagePath: 'assets/images/onboarding_tags.png',
+      title: AppStrings.onboardingTitle2,
+      subtitle: AppStrings.onboardingSubtitle2,
     ),
     _OnboardingPage(
-      emoji: '✨',
-      title: 'AI Monthly Stories',
-      subtitle:
-          'Every month, a heartfelt narrative is woven from your memories — a story you\'ll treasure forever.',
-      color: Color(0xFFF5A623),
+      imagePath: 'assets/images/onboarding_stories.png',
+      title: AppStrings.onboardingTitle3,
+      subtitle: AppStrings.onboardingSubtitle3,
     ),
     _OnboardingPage(
-      emoji: '👨‍👩‍👧',
-      title: 'Family Circle',
-      subtitle:
-          'Invite grandparents, partners, and family to share and contribute to the memory book together.',
-      color: Color(0xFF4CAF50),
+      imagePath: 'assets/images/onboarding_family.png',
+      title: AppStrings.onboardingTitle4,
+      subtitle: AppStrings.onboardingSubtitle4,
     ),
   ];
 
@@ -59,6 +53,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.surface,
       body: Stack(
         children: [
           PageView.builder(
@@ -83,12 +78,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       (i) => AnimatedContainer(
                         duration: const Duration(milliseconds: 250),
                         margin: const EdgeInsets.only(right: 6),
-                        width: _page == i ? 20 : 8,
+                        width: _page == i ? 24 : 8,
                         height: 8,
                         decoration: BoxDecoration(
                           color: _page == i
-                              ? Colors.white
-                              : Colors.white.withValues(alpha: 0.4),
+                              ? AppColors.primary
+                              : AppColors.divider,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -97,8 +92,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Next / Get started
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: _pages[_page].color,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.textPrimary,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                     ),
                     onPressed: () {
                       if (_page < _pages.length - 1) {
@@ -112,7 +109,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     },
                     child: Text(
                       _page == _pages.length - 1 ? 'Get Started' : 'Next',
-                      style: AppTextStyles.button,
+                      style: AppTextStyles.button.copyWith(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ],
@@ -124,9 +124,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             right: 16,
             child: TextButton(
               onPressed: _finish,
-              child: Text('Skip',
-                  style: AppTextStyles.caption
-                      .copyWith(color: Colors.white.withValues(alpha: 0.8))),
+              child: Text(
+                'Skip',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ),
         ],
@@ -142,13 +146,13 @@ class _PageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [
-            page.color,
-            page.color.withValues(alpha: 0.7),
+            AppColors.surface,
+            Color(0xFFF3ECE0),
           ],
         ),
       ),
@@ -159,21 +163,42 @@ class _PageView extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              Text(page.emoji,
-                  style: const TextStyle(fontSize: 80),
-                  textAlign: TextAlign.center),
-              const SizedBox(height: 40),
+              Container(
+                height: 280,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryDark.withValues(alpha: 0.12),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Image.asset(
+                    page.imagePath,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 48),
               Text(
                 page.title,
-                style: AppTextStyles.display
-                    .copyWith(color: Colors.white),
+                style: AppTextStyles.display.copyWith(
+                  color: AppColors.textPrimary,
+                  fontSize: 28,
+                ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               Text(
                 page.subtitle,
-                style: AppTextStyles.body
-                    .copyWith(color: Colors.white.withValues(alpha: 0.9)),
+                style: AppTextStyles.bodySecondary.copyWith(
+                  height: 1.6,
+                  fontSize: 14,
+                ),
                 textAlign: TextAlign.center,
               ),
               const Spacer(flex: 2),
@@ -187,14 +212,12 @@ class _PageView extends StatelessWidget {
 
 class _OnboardingPage {
   const _OnboardingPage({
-    required this.emoji,
+    required this.imagePath,
     required this.title,
     required this.subtitle,
-    required this.color,
   });
 
-  final String emoji;
+  final String imagePath;
   final String title;
   final String subtitle;
-  final Color color;
 }

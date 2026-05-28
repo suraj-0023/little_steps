@@ -1,20 +1,39 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/constants/app_strings.dart';
-import '../../../shared/app_shell.dart';
 import '../../baby/providers/baby_providers.dart';
 import '../../memory/models/memory.dart';
 import '../../memory/notifiers/upload_notifier.dart';
 import '../../memory/providers/memory_providers.dart';
 import '../../memory/widgets/memory_card.dart';
 import '../widgets/on_this_day_card.dart';
+
+
+// Wrapper widget to hold original body content for Stack
+class _CollageBody extends StatelessWidget {
+  const _CollageBody({required this.memoriesAsync, required this.grouped});
+  final AsyncValue<List<Memory>> memoriesAsync;
+  final Map<String, List<Memory>> grouped;
+
+  @override
+  Widget build(BuildContext context) {
+    return memoriesAsync.when(
+      loading: () => _ShimmerGrid(),
+      error: (e, _) => Center(child: Text('Error: $e')),
+      data: (_) {
+        if (grouped.isEmpty) return _EmptyState();
+        return _MasonryCollage(grouped: grouped);
+      },
+    );
+  }
+}
+
 
 class CollageScreen extends ConsumerWidget {
   const CollageScreen({super.key});
@@ -24,7 +43,6 @@ class CollageScreen extends ConsumerWidget {
     final baby = ref.watch(currentBabyProvider).valueOrNull;
     final memoriesAsync = ref.watch(memoriesProvider);
     final grouped = ref.watch(memoriesByMonthProvider);
-    final uploadState = ref.watch(uploadNotifierProvider);
 
     ref.listen(uploadNotifierProvider, (_, state) {
       if (state is UploadSuccess) {
@@ -43,123 +61,21 @@ class CollageScreen extends ConsumerWidget {
     });
 
     return Scaffold(
+      body: _CollageBody(memoriesAsync: memoriesAsync, grouped: grouped),
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: AppShell.openDrawer,
-        ),
         title: Text(
-          baby != null ? "${baby.displayName}'s Memory Book" : AppStrings.appName,
-          style: AppTextStyles.title,
-        ),
-      ),
-      body: memoriesAsync.when(
-        loading: () => _ShimmerGrid(),
-        error: (e, _) => Center(child: Text('Error: $e')),
-        data: (_) {
-          if (grouped.isEmpty) return _EmptyState();
-          return _MasonryCollage(grouped: grouped);
-        },
-      ),
-      // Icon-only FAB — no text label
-      floatingActionButton: uploadState is UploadInProgress
-          ? FloatingActionButton(
-              onPressed: null,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.6),
-              child: const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                    strokeWidth: 2.5, color: Colors.white),
-              ),
-            )
-          : FloatingActionButton(
-              onPressed: () => _showUploadSheet(context, ref),
-              backgroundColor: AppColors.primary,
-              child: const Icon(Icons.add_a_photo, color: Colors.white),
-            ),
-    );
-  }
-
-  void _showUploadSheet(BuildContext context, WidgetRef ref) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.divider,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt_outlined,
-                    color: AppColors.primary),
-                title: const Text(AppStrings.takePhoto),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickAndUpload(context, ref, ImageSource.camera);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.photo_library_outlined,
-                    color: AppColors.primary),
-                title: const Text(AppStrings.chooseFromGallery),
-                subtitle: const Text('Select multiple photos at once'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _pickMultipleAndUpload(context, ref);
-                },
-              ),
-            ],
+          baby != null
+              ? "${(baby.nickname != null && baby.nickname!.isNotEmpty) ? baby.nickname : baby.displayName}'s Memory Book"
+              : AppStrings.appName,
+          style: AppTextStyles.body.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.normal,
           ),
         ),
+        centerTitle: true,
+        actions: [],
       ),
     );
-  }
-
-  Future<void> _pickAndUpload(
-      BuildContext context, WidgetRef ref, ImageSource source) async {
-    if (ref.read(uploadNotifierProvider) is UploadInProgress) return;
-    final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: source,
-      maxWidth: 1920,
-      maxHeight: 1920,
-      imageQuality: 90,
-    );
-    if (picked == null) return;
-    await ref
-        .read(uploadNotifierProvider.notifier)
-        .uploadPhoto(File(picked.path));
-  }
-
-  Future<void> _pickMultipleAndUpload(
-      BuildContext context, WidgetRef ref) async {
-    if (ref.read(uploadNotifierProvider) is UploadInProgress) return;
-    final picker = ImagePicker();
-    final picked = await picker.pickMultiImage(
-      maxWidth: 1920,
-      maxHeight: 1920,
-      imageQuality: 90,
-    );
-    if (picked.isEmpty) return;
-    // Upload one by one — each triggers its own upload notifier cycle
-    for (final xFile in picked) {
-      await ref
-          .read(uploadNotifierProvider.notifier)
-          .uploadPhoto(File(xFile.path));
-    }
   }
 }
 
@@ -185,19 +101,51 @@ class _MasonryCollage extends StatelessWidget {
                   padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
                   child: Row(
                     children: [
-                      Text(month, style: AppTextStyles.title),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(10),
+                      Expanded(
+                        child: _DottedDivider(
+                          color: AppColors.textSecondary.withValues(alpha: 0.25),
+                          dotRadius: 1.0,
+                          spacing: 3.5,
                         ),
-                        child: Text(
-                          '${memories.length}',
-                          style: AppTextStyles.caption
-                              .copyWith(color: AppColors.primary),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              month,
+                              style: AppTextStyles.body.copyWith(
+                                color: AppColors.textSecondary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 6, vertical: 1.5),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${memories.length}',
+                                style: AppTextStyles.caption.copyWith(
+                                  color: AppColors.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        child: _DottedDivider(
+                          color: AppColors.textSecondary.withValues(alpha: 0.25),
+                          dotRadius: 1.0,
+                          spacing: 3.5,
                         ),
                       ),
                     ],
@@ -219,7 +167,17 @@ class _MasonryCollage extends StatelessWidget {
                         memory: memory,
                         onTap: () => context.push('/memory/${memory.id}'),
                       ),
-                    );
+                    )
+                        .animate()
+                        .fadeIn(
+                          duration: 450.ms,
+                          delay: (i * 45).clamp(0, 550).ms,
+                        )
+                        .slideY(
+                          begin: 0.12,
+                          end: 0,
+                          curve: Curves.easeOutCubic,
+                        );
                   },
                 ),
               ),
@@ -227,6 +185,7 @@ class _MasonryCollage extends StatelessWidget {
             ],
           );
         }),
+        const SliverToBoxAdapter(child: SizedBox(height: 100)), // Space for floating bottom nav dock
       ],
     );
   }
@@ -289,4 +248,58 @@ class _ShimmerGrid extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DottedDivider extends StatelessWidget {
+  const _DottedDivider({
+    required this.color,
+    required this.dotRadius,
+    required this.spacing,
+  });
+
+  final Color color;
+  final double dotRadius;
+  final double spacing;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _DottedLinePainter(
+        color: color,
+        dotRadius: dotRadius,
+        spacing: spacing,
+      ),
+      child: const SizedBox(height: 1),
+    );
+  }
+}
+
+class _DottedLinePainter extends CustomPainter {
+  _DottedLinePainter({
+    required this.color,
+    required this.dotRadius,
+    required this.spacing,
+  });
+
+  final Color color;
+  final double dotRadius;
+  final double spacing;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    double startX = 0;
+    final double y = size.height / 2;
+
+    while (startX < size.width) {
+      canvas.drawCircle(Offset(startX + dotRadius, y), dotRadius, paint);
+      startX += 2 * dotRadius + spacing;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

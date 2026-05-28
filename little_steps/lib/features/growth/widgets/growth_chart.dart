@@ -113,7 +113,7 @@ class _LineChart extends StatelessWidget {
             show: true,
             drawVerticalLine: false,
             getDrawingHorizontalLine: (_) =>
-                FlLine(color: AppColors.divider, strokeWidth: 1),
+                FlLine(color: AppColors.divider.withValues(alpha: 0.5), strokeWidth: 0.8),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
@@ -133,7 +133,7 @@ class _LineChart extends StatelessWidget {
                 getTitlesWidget: (value, _) {
                   final idx = value.toInt();
                   if (idx < 0 || idx >= points.length) {
-                    return const SizedBox.shrink();
+                     return const SizedBox.shrink();
                   }
                   final dt = points[idx].date;
                   return Text(
@@ -153,11 +153,11 @@ class _LineChart extends StatelessWidget {
               spots: spots,
               isCurved: true,
               color: color,
-              barWidth: 3,
+              barWidth: 4,
               dotData: FlDotData(
                 show: true,
                 getDotPainter: (_, spot, barData, barIndex) => FlDotCirclePainter(
-                  radius: 4,
+                  radius: 5,
                   color: color,
                   strokeWidth: 2,
                   strokeColor: Colors.white,
@@ -165,16 +165,28 @@ class _LineChart extends StatelessWidget {
               ),
               belowBarData: BarAreaData(
                 show: true,
-                color: color.withValues(alpha: 0.1),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    color.withValues(alpha: 0.18),
+                    color.withValues(alpha: 0.0),
+                  ],
+                ),
               ),
             ),
           ],
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
+              getTooltipColor: (_) => AppColors.textPrimary.withValues(alpha: 0.85),
+              tooltipRoundedRadius: 8,
               getTooltipItems: (spots) => spots.map((s) {
                 return LineTooltipItem(
                   '${s.y.toStringAsFixed(1)} $unit',
-                  AppTextStyles.caption.copyWith(color: Colors.white),
+                  AppTextStyles.caption.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 );
               }).toList(),
             ),

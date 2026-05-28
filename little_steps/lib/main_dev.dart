@@ -1,4 +1,4 @@
-import 'package:firebase_app_check/firebase_app_check.dart';
+import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +10,16 @@ import 'core/services/offline_queue_service.dart';
 import 'features/onboarding/providers/onboarding_provider.dart';
 import 'firebase_options.dart';
 
+class DevHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    return super.createHttpClient(context)
+      ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
+  }
+}
+
 void main() async {
+  HttpOverrides.global = DevHttpOverrides();
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await Hive.openBox('prefs');
@@ -19,9 +28,9 @@ void main() async {
   onboardingDoneSync = prefs.getBool('onboarding_done') ?? false;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // App Check — debug provider for dev builds (no Play Integrity needed)
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
-  );
+  // await FirebaseAppCheck.instance.activate(
+  //   androidProvider: AndroidProvider.debug,
+  // );
   await NotificationService.initialize();
   runApp(const ProviderScope(child: LittleStepsApp()));
 }

@@ -52,8 +52,8 @@ class AppStrings {
   static const String sealedLetter = 'Sealed Letter';
 
   // Export
-  static const String exportAndShare = 'Export & Share';
-  static const String pdfCollage = 'PDF Collage';
+  static const String exportAndShare = 'Memory Albums';
+  static const String pdfCollage = 'Memory Scrapbook';
   static const String photoReel = 'Photo Reel';
 
   // Settings
@@ -69,4 +69,18 @@ class AppStrings {
   static const String genericError = 'Something went wrong. Please try again.';
   static const String networkError = 'Check your internet connection and try again.';
   static const String uploadError = 'Failed to upload photo. Please try again.';
+
+  // Onboarding
+  static const String onboardingTitle1 = 'Every Little Step';
+  static const String onboardingSubtitle1 =
+      "Capture your baby's most precious moments — photos, milestones, and growth — all in one beautiful place.";
+  static const String onboardingTitle2 = 'Auto-Tagged Memories';
+  static const String onboardingSubtitle2 =
+      'Our on-device AI reads each photo and adds smart tags instantly — no internet needed.';
+  static const String onboardingTitle3 = 'AI Monthly Stories';
+  static const String onboardingSubtitle3 =
+      "Every month, a heartfelt narrative is woven from your memories — a story you'll treasure forever.";
+  static const String onboardingTitle4 = 'Family Circle';
+  static const String onboardingSubtitle4 =
+      'Invite grandparents, partners, and family to share and contribute to the memory book together.';
 }

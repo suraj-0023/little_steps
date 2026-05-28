@@ -11,6 +11,11 @@ class Baby {
     this.coverPhotoUrl,
     this.useNicknameDisplay = false,
     this.childCode,
+    this.bloodGroup,
+    this.birthTime,
+    this.birthHeight,
+    this.birthWeight,
+    this.moles,
   });
 
   final String id;
@@ -24,6 +29,11 @@ class Baby {
   final String? coverPhotoUrl;
   final bool useNicknameDisplay;
   final String? childCode;
+  final String? bloodGroup;
+  final String? birthTime;
+  final double? birthHeight;
+  final double? birthWeight;
+  final String? moles;
 
   String get firstName => name.split(' ').first;
 
@@ -50,6 +60,15 @@ class Baby {
       coverPhotoUrl: data['coverPhotoUrl'] as String?,
       useNicknameDisplay: data['useNicknameDisplay'] as bool? ?? false,
       childCode: data['childCode'] as String?,
+      bloodGroup: data['bloodGroup'] as String?,
+      birthTime: data['birthTime'] as String?,
+      birthHeight: data['birthHeight'] != null
+          ? (data['birthHeight'] as num).toDouble()
+          : null,
+      birthWeight: data['birthWeight'] != null
+          ? (data['birthWeight'] as num).toDouble()
+          : null,
+      moles: data['moles'] as String?,
     );
   }
 
@@ -65,6 +84,11 @@ class Baby {
         if (coverPhotoUrl != null) 'coverPhotoUrl': coverPhotoUrl,
         'useNicknameDisplay': useNicknameDisplay,
         if (childCode != null) 'childCode': childCode,
+        if (bloodGroup != null) 'bloodGroup': bloodGroup,
+        if (birthTime != null) 'birthTime': birthTime,
+        if (birthHeight != null) 'birthHeight': birthHeight,
+        if (birthWeight != null) 'birthWeight': birthWeight,
+        if (moles != null) 'moles': moles,
       };
 
   Baby copyWith({
@@ -76,6 +100,11 @@ class Baby {
     String? coverPhotoUrl,
     bool? useNicknameDisplay,
     String? childCode,
+    String? bloodGroup,
+    String? birthTime,
+    double? birthHeight,
+    double? birthWeight,
+    String? moles,
   }) {
     return Baby(
       id: id,
@@ -89,6 +118,11 @@ class Baby {
       coverPhotoUrl: coverPhotoUrl ?? this.coverPhotoUrl,
       useNicknameDisplay: useNicknameDisplay ?? this.useNicknameDisplay,
       childCode: childCode ?? this.childCode,
+      bloodGroup: bloodGroup ?? this.bloodGroup,
+      birthTime: birthTime ?? this.birthTime,
+      birthHeight: birthHeight ?? this.birthHeight,
+      birthWeight: birthWeight ?? this.birthWeight,
+      moles: moles ?? this.moles,
     );
   }
 }

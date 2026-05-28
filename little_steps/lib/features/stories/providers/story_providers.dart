@@ -12,5 +12,12 @@ final storiesProvider = StreamProvider<List<Story>>((ref) {
   return ref.watch(storyRepositoryProvider).watchStories(user!.familyId!);
 });
 
+/// Nullable status string — null means not generating.
+/// Non-null value is the current step description shown in the UI.
+final storyGeneratingStatusProvider =
+    StateProvider.autoDispose<String?>((ref) => null);
+
+/// Kept for backwards compatibility (derived from status provider)
 final storyGeneratingProvider =
-    StateProvider.autoDispose<bool>((ref) => false);
+    Provider.autoDispose<bool>((ref) =>
+        ref.watch(storyGeneratingStatusProvider) != null);

@@ -14,6 +14,7 @@ class Memory {
     this.location,
     this.exif,
     this.voiceNoteUrl,
+    this.showInTimeline = true,
   });
 
   final String id;
@@ -28,6 +29,7 @@ class Memory {
   final String? location;
   final ExifData? exif;
   final String? voiceNoteUrl;
+  final bool showInTimeline;
 
   factory Memory.fromFirestore(Map<String, dynamic> data, String id) {
     return Memory(
@@ -45,6 +47,7 @@ class Memory {
           ? ExifData.fromMap(Map<String, dynamic>.from(data['exif'] as Map))
           : null,
       voiceNoteUrl: data['voiceNoteUrl'] as String?,
+      showInTimeline: data['showInTimeline'] as bool? ?? true,
     );
   }
 
@@ -56,6 +59,7 @@ class Memory {
         'uploadedBy': uploadedBy,
         'createdAt': createdAt.toIso8601String(),
         'tags': tags,
+        'showInTimeline': showInTimeline,
         if (caption != null) 'caption': caption,
         if (location != null) 'location': location,
         if (exif != null) 'exif': exif!.toMap(),
@@ -67,6 +71,7 @@ class Memory {
     List<String>? tags,
     String? location,
     String? voiceNoteUrl,
+    bool? showInTimeline,
   }) {
     return Memory(
       id: id,
@@ -81,6 +86,7 @@ class Memory {
       location: location ?? this.location,
       exif: exif,
       voiceNoteUrl: voiceNoteUrl ?? this.voiceNoteUrl,
+      showInTimeline: showInTimeline ?? this.showInTimeline,
     );
   }
 }

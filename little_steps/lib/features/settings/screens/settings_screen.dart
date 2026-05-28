@@ -6,7 +6,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/app_logger.dart';
-import '../../../shared/app_shell.dart';
 import '../../auth/models/app_user.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../baby/providers/baby_providers.dart';
@@ -25,8 +24,8 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Settings'),
         leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: AppShell.openDrawer,
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
         ),
       ),
       body: ListView(
@@ -62,6 +61,16 @@ class SettingsScreen extends ConsumerWidget {
                         : 'Birthday not set',
                 style: AppTextStyles.caption,
               ),
+            ),
+            _NavTile(
+              icon: Icons.edit_outlined,
+              title: 'Edit Baby Profile',
+              onTap: () => context.push('/settings/baby-edit'),
+            ),
+            _NavTile(
+              icon: Icons.face_outlined,
+              title: 'Parent & Family Profiles (AI)',
+              onTap: () => context.push('/settings/parents-edit'),
             ),
             if (baby.nickname != null) ...[
               // Nickname display toggle — editor/admin only, family-wide
@@ -132,7 +141,7 @@ class SettingsScreen extends ConsumerWidget {
                 style: AppTextStyles.body.copyWith(color: AppColors.error)),
             onTap: () => _confirmSignOut(context, ref),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 100),
         ],
       ),
     );

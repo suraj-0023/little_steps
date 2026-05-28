@@ -7,7 +7,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams;
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../../../shared/app_shell.dart';
 import '../../auth/models/app_user.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../baby/models/baby.dart';
@@ -73,8 +72,8 @@ class _FamilyScreenState extends ConsumerState<FamilyScreen> {
       appBar: AppBar(
         title: const Text('Family Circle'),
         leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: AppShell.openDrawer,
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
         ),
         actions: [
           IconButton(

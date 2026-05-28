@@ -48,6 +48,10 @@ class MemoryRepository {
     final thumbnailUrl = await _upload(
         thumbnail, 'families/$familyId/memories/$memoryId/thumb.jpg');
 
+    final finalCaption = (caption != null && caption.trim().isNotEmpty)
+        ? caption
+        : _generateAiCaption(autoTags);
+
     final memory = Memory(
       id: memoryId,
       familyId: familyId,
@@ -56,7 +60,7 @@ class MemoryRepository {
       takenAt: takenAt,
       uploadedBy: uploadedBy,
       createdAt: now,
-      caption: caption,
+      caption: finalCaption,
       tags: autoTags,
       exif: exif,
     );
@@ -70,6 +74,59 @@ class MemoryRepository {
 
     AppLogger.i('Uploaded memory: $memoryId');
     return memory;
+  }
+
+  String? _generateAiCaption(List<String> tags) {
+    if (tags.isEmpty) return null;
+    
+    final cleanTags = tags.map((t) => t.trim().toLowerCase()).toList();
+    
+    final hasBaby = cleanTags.contains('baby') || cleanTags.contains('child') || cleanTags.contains('infant') || cleanTags.contains('toddler');
+    final hasSmile = cleanTags.contains('smiling') || cleanTags.contains('smile') || cleanTags.contains('happy');
+    final hasPlay = cleanTags.contains('playing') || cleanTags.contains('play') || cleanTags.contains('toy');
+    final hasSleep = cleanTags.contains('sleeping') || cleanTags.contains('sleep') || cleanTags.contains('nap');
+    final hasEating = cleanTags.contains('eating') || cleanTags.contains('eat') || cleanTags.contains('food');
+    
+    final otherTags = cleanTags.where((t) => !['baby', 'child', 'infant', 'toddler', 'smiling', 'smile', 'happy', 'playing', 'play', 'toy', 'sleeping', 'sleep', 'nap', 'eating', 'eat', 'food', 'person'].contains(t)).toList();
+    
+    if (hasSleep) {
+      return hasBaby 
+          ? "A peaceful moment of baby sleeping soundly, lost in sweet dreams."
+          : "A quiet, peaceful naptime moment.";
+    }
+    
+    if (hasEating) {
+      return hasBaby
+          ? "Baby enjoying a delicious mealtime adventure, full of curiosity."
+          : "A delightful mealtime moment.";
+    }
+    
+    if (hasPlay && hasSmile) {
+      return hasBaby
+          ? "A joyful moment of baby smiling and playing happily."
+          : "A happy play session filled with smiles.";
+    }
+    
+    if (hasSmile) {
+      if (otherTags.isNotEmpty) {
+        return "A bright, smiling moment featuring ${otherTags.first}.";
+      }
+      return "A heartwarming smile that brightens up the day.";
+    }
+    
+    if (hasPlay) {
+      if (otherTags.isNotEmpty) {
+        return "Baby having fun playing, exploring ${otherTags.first}.";
+      }
+      return "An active moment of play and exploration.";
+    }
+    
+    if (otherTags.isNotEmpty) {
+      final item = otherTags.first;
+      return "A beautiful capture featuring a lovely view of $item.";
+    }
+    
+    return "A precious memory captured to remember forever.";
   }
 
   Stream<List<Memory>> watchMemories(String familyId) {
@@ -102,6 +159,16 @@ class MemoryRepository {
         .collection(AppConstants.memoriesCollection)
         .doc(memoryId)
         .update({'caption': caption});
+  }
+
+  Future<void> updateMemoryTimelineVisibility(
+      String familyId, String memoryId, bool showInTimeline) async {
+    await _firestore
+        .collection(AppConstants.familiesCollection)
+        .doc(familyId)
+        .collection(AppConstants.memoriesCollection)
+        .doc(memoryId)
+        .update({'showInTimeline': showInTimeline});
   }
 
   Future<void> attachVoiceNote(

@@ -6,7 +6,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_text_styles.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/utils/app_logger.dart';
-import '../../../shared/app_shell.dart';
 import '../../auth/providers/auth_providers.dart';
 import '../../baby/providers/baby_providers.dart';
 import '../models/growth_entry.dart';
@@ -24,8 +23,8 @@ class GrowthScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(AppStrings.growth),
         leading: IconButton(
-          icon: const Icon(Icons.menu),
-          onPressed: AppShell.openDrawer,
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
         ),
         actions: [
           IconButton(
