@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
@@ -13,7 +14,6 @@ import '../../memory/notifiers/upload_notifier.dart';
 import '../../memory/providers/memory_providers.dart';
 import '../../memory/widgets/memory_card.dart';
 import '../widgets/on_this_day_card.dart';
-
 
 // Wrapper widget to hold original body content for Stack
 class _CollageBody extends StatelessWidget {
@@ -34,7 +34,6 @@ class _CollageBody extends StatelessWidget {
   }
 }
 
-
 class CollageScreen extends ConsumerWidget {
   const CollageScreen({super.key});
 
@@ -46,15 +45,16 @@ class CollageScreen extends ConsumerWidget {
 
     ref.listen(uploadNotifierProvider, (_, state) {
       if (state is UploadSuccess) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Memory saved!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Memory saved!')));
         ref.read(uploadNotifierProvider.notifier).reset();
       } else if (state is UploadError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text((state).message),
-              backgroundColor: AppColors.error),
+            content: Text((state).message),
+            backgroundColor: AppColors.error,
+          ),
         );
         ref.read(uploadNotifierProvider.notifier).reset();
       }
@@ -63,7 +63,7 @@ class CollageScreen extends ConsumerWidget {
     return Container(
       decoration: const BoxDecoration(
         image: DecorationImage(
-          image: AssetImage('BG_images/abstract_1.jpeg'),
+          image: AssetImage('BG_images/dreamy_pastel_wash_1780048482850.png'),
           fit: BoxFit.cover,
         ),
       ),
@@ -77,9 +77,17 @@ class CollageScreen extends ConsumerWidget {
             baby != null
                 ? "${(baby.nickname != null && baby.nickname!.isNotEmpty) ? baby.nickname : baby.displayName}'s Memory Book"
                 : AppStrings.appName,
-            style: AppTextStyles.body.copyWith(
+            style: GoogleFonts.dancingScript(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
-              fontWeight: FontWeight.normal,
+              shadows: [
+                Shadow(
+                  offset: const Offset(0, 1),
+                  blurRadius: 4.0,
+                  color: AppColors.surface.withValues(alpha: 0.8),
+                ),
+              ],
             ),
           ),
           centerTitle: true,
@@ -114,7 +122,9 @@ class _MasonryCollage extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _DottedDivider(
-                          color: AppColors.textSecondary.withValues(alpha: 0.25),
+                          color: AppColors.textSecondary.withValues(
+                            alpha: 0.45,
+                          ),
                           dotRadius: 1.0,
                           spacing: 3.5,
                         ),
@@ -127,15 +137,26 @@ class _MasonryCollage extends StatelessWidget {
                             Text(
                               month,
                               style: AppTextStyles.body.copyWith(
-                                color: AppColors.textSecondary,
-                                fontSize: 13,
-                                fontWeight: FontWeight.normal,
+                                color: AppColors.textPrimary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                shadows: [
+                                  Shadow(
+                                    offset: const Offset(0, 1),
+                                    blurRadius: 3.0,
+                                    color: AppColors.surface.withValues(
+                                      alpha: 0.9,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 1.5),
+                                horizontal: 6,
+                                vertical: 1.5,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
@@ -154,7 +175,9 @@ class _MasonryCollage extends StatelessWidget {
                       ),
                       Expanded(
                         child: _DottedDivider(
-                          color: AppColors.textSecondary.withValues(alpha: 0.25),
+                          color: AppColors.textSecondary.withValues(
+                            alpha: 0.45,
+                          ),
                           dotRadius: 1.0,
                           spacing: 3.5,
                         ),
@@ -173,12 +196,12 @@ class _MasonryCollage extends StatelessWidget {
                   itemBuilder: (context, i) {
                     final memory = memories[i];
                     return AspectRatio(
-                      aspectRatio: i % 3 == 0 ? 0.85 : 1.1,
-                      child: MemoryCard(
-                        memory: memory,
-                        onTap: () => context.push('/memory/${memory.id}'),
-                      ),
-                    )
+                          aspectRatio: i % 3 == 0 ? 0.85 : 1.1,
+                          child: MemoryCard(
+                            memory: memory,
+                            onTap: () => context.push('/memory/${memory.id}'),
+                          ),
+                        )
                         .animate()
                         .fadeIn(
                           duration: 450.ms,
@@ -196,7 +219,9 @@ class _MasonryCollage extends StatelessWidget {
             ],
           );
         }),
-        const SliverToBoxAdapter(child: SizedBox(height: 100)), // Space for floating bottom nav dock
+        const SliverToBoxAdapter(
+          child: SizedBox(height: 100),
+        ), // Space for floating bottom nav dock
       ],
     );
   }
@@ -213,9 +238,11 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.photo_library_outlined,
-                size: 80,
-                color: AppColors.textSecondary.withValues(alpha: 0.4)),
+            Icon(
+              Icons.photo_library_outlined,
+              size: 80,
+              color: AppColors.textSecondary.withValues(alpha: 0.4),
+            ),
             const SizedBox(height: 24),
             const Text(AppStrings.addFirstMemory, style: AppTextStyles.title),
             const SizedBox(height: 8),
