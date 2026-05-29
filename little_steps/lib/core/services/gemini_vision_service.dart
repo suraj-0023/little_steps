@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -270,6 +271,71 @@ $currentContent
       AppLogger.e('Story refinement failed: $e');
     }
     return currentContent;
+  }
+
+  /// Polish raw, messy notes into beautiful memories.
+  Future<String> polishMemoryNotes(String rawNotes) async {
+    final prompt = '''
+You are a warm, literary storyteller. A parent has written rough, messy notes about a memory with their baby.
+Please rewrite and polish these notes to make them sound beautiful, emotional, warm, and flowing, like a literary memoir.
+
+STRICT RULES:
+- Preserve all specific facts, dates, names, and events from the notes.
+- Output ONLY the polished memory content — no intro, no outro, no title, no code fences.
+- Maintain a warm, premium, emotional tone.
+
+Rough Notes:
+$rawNotes
+''';
+
+    try {
+      AppLogger.i('Sending memory note polish prompt to Gemini');
+      final result = await _model
+          .generateContent([Content.text(prompt)])
+          .timeout(const Duration(seconds: 45));
+      final text = result.text?.trim();
+      if (text != null && text.isNotEmpty) return text;
+    } catch (e) {
+      AppLogger.e('Memory note polish failed: $e');
+    }
+    return rawNotes;
+  }
+
+  /// Transcribe audio from a file using Gemini 1.5.
+  Future<String?> transcribeAudio(File audioFile) async {
+    final prompt = '''
+You are an expert audio transcription system. Please listen to the provided audio clip and transcribe the spoken words into text. 
+Output ONLY the transcription. Do not include any explanations, introductory text, or markdown blocks.
+''';
+
+    try {
+      final bytes = await audioFile.readAsBytes();
+      if (bytes.isEmpty) return null;
+      
+      AppLogger.i('Sending audio to Gemini for transcription (\${bytes.length} bytes)');
+      
+      // We pass the raw bytes. We use audio/mp4 for m4a files or audio/aac depending on the source.
+      // Usually, 'audio/mp4' works well for .m4a.
+      final content = [
+        Content.multi([
+          TextPart(prompt),
+          DataPart('audio/mp4', bytes),
+        ])
+      ];
+
+      final result = await _model
+          .generateContent(content)
+          .timeout(const Duration(seconds: 45));
+          
+      final text = result.text?.trim();
+      if (text != null && text.isNotEmpty) {
+        AppLogger.i('Transcription successful: \$text');
+        return text;
+      }
+    } catch (e) {
+      AppLogger.e('Audio transcription failed: \$e');
+    }
+    return null;
   }
 
   String _enhancedFallback(

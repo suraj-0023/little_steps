@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_providers.dart';
@@ -9,7 +8,7 @@ import '../../features/baby/screens/baby_profile_edit_screen.dart';
 import '../../features/baby/screens/parent_profile_edit_screen.dart';
 import '../../features/collage/screens/collage_screen.dart';
 import '../../features/export/screens/memory_albums_screen.dart';
-import '../../features/export/screens/album_preview_screen.dart';
+import '../../features/export/screens/keepsake_viewer_screen.dart';
 import '../../features/export/screens/reel_screen.dart';
 import '../../features/family/screens/family_screen.dart';
 import '../../features/family/screens/invite_screen.dart';
@@ -19,6 +18,8 @@ import '../../features/letters/screens/letter_detail_screen.dart';
 import '../../features/letters/screens/letters_screen.dart';
 import '../../features/letters/screens/write_letter_screen.dart';
 import '../../features/memory/screens/memory_detail_screen.dart';
+import '../../features/memory/screens/post_upload_screen.dart';
+import '../../features/memory/models/memory.dart';
 import '../../features/onboarding/screens/onboarding_screen.dart';
 import '../../features/settings/screens/about_screen.dart';
 import '../../features/settings/screens/privacy_policy_screen.dart';
@@ -90,11 +91,11 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
       GoRoute(
-        path: '/export/preview',
+        path: '/export/keepsake',
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
-          return AlbumPreviewScreen(
-            pdfFile: extra['pdfFile'] as File,
+          return KeepsakeViewerScreen(
+            memories: extra['memories'] as List<Memory>,
             albumName: extra['albumName'] as String,
           );
         },
@@ -103,6 +104,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/memory/:memoryId',
         builder: (context, state) =>
             MemoryDetailScreen(memoryId: state.pathParameters['memoryId']!),
+      ),
+      GoRoute(
+        path: '/post-upload',
+        builder: (context, state) {
+          final items = state.extra as List<UploadItem>;
+          return PostUploadScreen(uploadItems: items);
+        },
       ),
       GoRoute(
         path: '/family/invite',

@@ -8,6 +8,7 @@ import '../../auth/providers/auth_providers.dart';
 import '../../baby/providers/baby_providers.dart';
 import '../models/milestone.dart';
 import '../providers/timeline_providers.dart';
+import '../../../core/services/gemini_vision_service.dart';
 
 class AddMilestoneScreen extends ConsumerStatefulWidget {
   const AddMilestoneScreen({super.key});
@@ -69,6 +70,28 @@ class _AddMilestoneScreenState extends ConsumerState<AddMilestoneScreen> {
           );
       if (!mounted) return;
       context.pop();
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _polishNotes() async {
+    final text = _noteController.text.trim();
+    if (text.isEmpty) return;
+
+    setState(() => _saving = true);
+    try {
+      final gemini = ref.read(geminiVisionServiceProvider);
+      final polished = await gemini.polishMemoryNotes(text);
+      if (mounted && polished.isNotEmpty && polished != text) {
+        _noteController.text = polished;
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to polish notes: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -161,7 +184,16 @@ class _AddMilestoneScreenState extends ConsumerState<AddMilestoneScreen> {
                 alignLabelWithHint: true,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: _saving ? null : _polishNotes,
+                icon: const Icon(Icons.auto_awesome, color: AppColors.primary, size: 18),
+                label: Text('Polish with AI', style: TextStyle(color: AppColors.primary)),
+              ),
+            ),
+            const SizedBox(height: 16),
             _saving
                 ? const Center(child: CircularProgressIndicator())
                 : SizedBox(

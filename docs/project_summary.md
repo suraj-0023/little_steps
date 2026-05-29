@@ -1,7 +1,7 @@
 # LittleSteps — Project Summary
 
-**Last Updated:** 2026-05-19  
-**Current Phase:** Phase 2 complete, Phase 3 in progress (Phases 0–2 in production, Growth journal + Letters started, Security hardening complete)
+**Last Updated:** 2026-05-29  
+**Current Phase:** Phase 2 complete, Phase 3 in progress (Phases 0–2 complete, Phase 3 tests and core features complete)
 
 ---
 

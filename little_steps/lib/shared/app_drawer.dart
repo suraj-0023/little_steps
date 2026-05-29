@@ -18,7 +18,7 @@ class AppDrawer extends ConsumerWidget {
 
   static const _featureItems = [
     (icon: Icons.mail_outline, activeIcon: Icons.mail, label: 'Letters to Future', path: '/letters'),
-    (icon: Icons.picture_as_pdf_outlined, activeIcon: Icons.picture_as_pdf, label: 'Memory Albums', path: '/export'),
+    (icon: Icons.photo_album_outlined, activeIcon: Icons.photo_album, label: 'Memory Books', path: '/export'),
     (icon: Icons.play_circle_outline, activeIcon: Icons.play_circle, label: 'Photo Reel', path: '/reel'),
   ];
 
@@ -121,7 +121,7 @@ class AppDrawer extends ConsumerWidget {
                     child: Divider(),
                   ),
                   ..._featureItems.map((item) {
-                    final comingSoon = item.path == '/export' || item.path == '/reel';
+                    final comingSoon = item.path == '/reel';
                     return _DrawerTile(
                       icon: Icon(item.icon),
                       selectedIcon: Icon(item.activeIcon),

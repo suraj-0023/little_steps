@@ -5,6 +5,27 @@ Most recent entry is always at the top.
 
 ---
 
+## 2026-05-29 — Comprehensive Test Suite Implementation
+
+**What:** Implemented a robust automated testing suite with 52 test cases covering model unit tests, repository unit tests with fakes, Riverpod provider tests, and UI widget tests. Also fixed a layout closing bracket syntax error in the timeline screen.
+
+**Why:** The codebase only had placeholder tests. Real tests ensure data integrity (serialization/deserialization) and prevent functional regressions during feature developments.
+
+**Impact:** Verified correctness of core models (`AppUser`, `Baby`, `Memory`/`ExifData`), Firestore repositories (`AuthRepository`, `BabyRepository`, `MemoryRepository`) using custom non-code-generated fakes, Riverpod state transitions in `SelectedBabyNotifier`, and rendering/navigation flow in `AuthScreen`.
+
+**Technical Detail:**
+- `test/fakes.dart`: Custom mock classes simulating Firebase Auth, Firestore documents/collections/batches, Storage file uploads, and platform image compression.
+- `test/features/auth/models/app_user_test.dart`: Serialization and helper getter tests.
+- `test/features/baby/models/baby_test.dart` & `test/features/memory/models/memory_test.dart`: Serialization, copyWith, and display logic tests.
+- `test/features/auth/repositories/auth_repository_test.dart`: Google Sign-In, sign out, user fetching/creation, and FCM token update tests.
+- `test/features/baby/repositories/baby_repository_test.dart`: Batch-write operations, update operations, and cover photo upload tests.
+- `test/features/memory/repositories/memory_repository_test.dart`: Memory upload, caption/date updates, timeline visibility toggling, voice note attachments, and delete cascades.
+- `test/features/baby/providers/selected_baby_provider_test.dart`: Hive-persisted Riverpod notifier state transition tests.
+- `test/features/auth/screens/auth_screen_test.dart`: Layout validation, sign-in tapping triggers, loading overlays, navigation, and SnackBar error reporting.
+- `lib/features/timeline/screens/timeline_screen.dart`: Fixed missing Container widget closing bracket syntax error.
+
+---
+
 ## 2026-05-19 — Security Hardening + Growth Screen + App Polish
 
 **What:** Tightened Firebase Storage security rules, hardened .gitignore against credential leaks, completed growth screen with charts, added core services, and polished Android splash/icon assets.

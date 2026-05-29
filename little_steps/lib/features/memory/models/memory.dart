@@ -14,6 +14,7 @@ class Memory {
     this.location,
     this.exif,
     this.voiceNoteUrl,
+    this.voiceNoteTranscription,
     this.showInTimeline = true,
   });
 
@@ -29,6 +30,7 @@ class Memory {
   final String? location;
   final ExifData? exif;
   final String? voiceNoteUrl;
+  final String? voiceNoteTranscription;
   final bool showInTimeline;
 
   factory Memory.fromFirestore(Map<String, dynamic> data, String id) {
@@ -47,6 +49,7 @@ class Memory {
           ? ExifData.fromMap(Map<String, dynamic>.from(data['exif'] as Map))
           : null,
       voiceNoteUrl: data['voiceNoteUrl'] as String?,
+      voiceNoteTranscription: data['voiceNoteTranscription'] as String?,
       showInTimeline: data['showInTimeline'] as bool? ?? true,
     );
   }
@@ -64,6 +67,7 @@ class Memory {
         if (location != null) 'location': location,
         if (exif != null) 'exif': exif!.toMap(),
         if (voiceNoteUrl != null) 'voiceNoteUrl': voiceNoteUrl,
+        if (voiceNoteTranscription != null) 'voiceNoteTranscription': voiceNoteTranscription,
       };
 
   Memory copyWith({
@@ -71,6 +75,7 @@ class Memory {
     List<String>? tags,
     String? location,
     String? voiceNoteUrl,
+    String? voiceNoteTranscription,
     bool? showInTimeline,
   }) {
     return Memory(
@@ -86,6 +91,7 @@ class Memory {
       location: location ?? this.location,
       exif: exif,
       voiceNoteUrl: voiceNoteUrl ?? this.voiceNoteUrl,
+      voiceNoteTranscription: voiceNoteTranscription ?? this.voiceNoteTranscription,
       showInTimeline: showInTimeline ?? this.showInTimeline,
     );
   }

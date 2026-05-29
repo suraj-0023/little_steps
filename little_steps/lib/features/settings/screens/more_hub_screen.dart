@@ -36,9 +36,9 @@ class MoreHubScreen extends ConsumerWidget {
         color: const Color(0xFFE08B8B),
       ),
       (
-        icon: Icons.picture_as_pdf_outlined,
-        title: 'Memory Albums',
-        subtitle: 'Design custom AI scrapbooks',
+        icon: Icons.photo_album_outlined,
+        title: 'Memory Books',
+        subtitle: 'Design custom Memory Books',
         path: '/export',
         color: const Color(0xFF9E8E7D),
       ),
@@ -98,7 +98,7 @@ class MoreHubScreen extends ConsumerWidget {
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
                     final item = hubItems[index];
-                    final comingSoon = item.path == '/export' || item.path == '/reel';
+                    final comingSoon = item.path == '/reel';
                     return _HubCard(
                       icon: item.icon,
                       title: item.title,

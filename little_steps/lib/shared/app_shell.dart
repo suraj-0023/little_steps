@@ -10,6 +10,8 @@ import '../features/baby/providers/baby_providers.dart';
 import '../features/baby/widgets/baby_switcher_sheet.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:uuid/uuid.dart';
+import '../features/memory/screens/post_upload_screen.dart';
 
 class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.child});
@@ -279,14 +281,30 @@ class AppShell extends ConsumerWidget {
       BuildContext context, WidgetRef ref, ImageSource source) async {
     if (ref.read(uploadNotifierProvider) is UploadInProgress) return;
     final picker = ImagePicker();
-    final picked = await picker.pickImage(
-      source: source,
-      maxWidth: 1920,
-      maxHeight: 1920,
-      imageQuality: 90,
-    );
-    if (picked == null) return;
-    await ref.read(uploadNotifierProvider.notifier).uploadPhoto(File(picked.path));
+    final List<UploadItem> uploadItems = [];
+    
+    while (true) {
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 1920,
+        maxHeight: 1920,
+        imageQuality: 90,
+      );
+      if (picked == null) break;
+      
+      final memoryId = const Uuid().v4();
+      uploadItems.add(UploadItem(memoryId: memoryId, file: File(picked.path)));
+    }
+    
+    if (uploadItems.isNotEmpty && context.mounted) {
+      // Instantly push the screen for zero-wait optimistic UI
+      context.push('/post-upload', extra: uploadItems);
+      
+      // Dispatch uploads concurrently in the background
+      for (final item in uploadItems) {
+        ref.read(uploadNotifierProvider.notifier).uploadPhoto(item.file, memoryId: item.memoryId);
+      }
+    }
   }
 
   Future<void> _pickMultipleAndUpload(
@@ -299,8 +317,21 @@ class AppShell extends ConsumerWidget {
       imageQuality: 90,
     );
     if (picked.isEmpty) return;
+    
+    final List<UploadItem> uploadItems = [];
     for (final xFile in picked) {
-      await ref.read(uploadNotifierProvider.notifier).uploadPhoto(File(xFile.path));
+      final memoryId = const Uuid().v4();
+      uploadItems.add(UploadItem(memoryId: memoryId, file: File(xFile.path)));
+    }
+    
+    if (uploadItems.isNotEmpty && context.mounted) {
+      // Instantly push the screen for zero-wait optimistic UI
+      context.push('/post-upload', extra: uploadItems);
+      
+      // Dispatch uploads concurrently in the background
+      for (final item in uploadItems) {
+        ref.read(uploadNotifierProvider.notifier).uploadPhoto(item.file, memoryId: item.memoryId);
+      }
     }
   }
 }

@@ -60,20 +60,31 @@ class CollageScreen extends ConsumerWidget {
       }
     });
 
-    return Scaffold(
-      body: _CollageBody(memoriesAsync: memoriesAsync, grouped: grouped),
-      appBar: AppBar(
-        title: Text(
-          baby != null
-              ? "${(baby.nickname != null && baby.nickname!.isNotEmpty) ? baby.nickname : baby.displayName}'s Memory Book"
-              : AppStrings.appName,
-          style: AppTextStyles.body.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.normal,
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('BG_images/abstract_1.jpeg'),
+          fit: BoxFit.cover,
         ),
-        centerTitle: true,
-        actions: [],
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: _CollageBody(memoriesAsync: memoriesAsync, grouped: grouped),
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text(
+            baby != null
+                ? "${(baby.nickname != null && baby.nickname!.isNotEmpty) ? baby.nickname : baby.displayName}'s Memory Book"
+                : AppStrings.appName,
+            style: AppTextStyles.body.copyWith(
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+          centerTitle: true,
+          actions: [],
+        ),
       ),
     );
   }

@@ -32,11 +32,21 @@ class TimelineScreen extends ConsumerWidget {
 
     final baby = ref.watch(currentBabyProvider).valueOrNull;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Timeline'),
-        centerTitle: true,
-        leading: Padding(
+    return Container(
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage('BG_images/natural_soft_tablo.webp'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text('Timeline'),
+          centerTitle: true,
+          leading: Padding(
           padding: const EdgeInsets.only(left: 12.0),
           child: Center(
             child: GestureDetector(
@@ -331,8 +341,9 @@ class TimelineScreen extends ConsumerWidget {
           foregroundColor: AppColors.textPrimary,
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   bool _sameMonth(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month;
